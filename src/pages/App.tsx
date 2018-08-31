@@ -8,6 +8,7 @@ type State = {
   teamId: string
   newTeamId: string
   newTeamName: string
+  error: boolean
 }
 
 type Props = {} & RouteComponentProps<{}>
@@ -18,7 +19,7 @@ class App extends React.Component<Props, State> {
     super(props)
 
     this.api = Api.getInstance()
-    this.state = { newTeamId: '', newTeamName: '', teamId: '' }
+    this.state = { newTeamId: '', newTeamName: '', teamId: '', error: false }
   }
 
   public render() {
@@ -77,7 +78,6 @@ class App extends React.Component<Props, State> {
   }
 
   join = () => {
-    console.log(this.state.teamId)
     this.props.history.push(`${this.state.teamId}`)
   }
 

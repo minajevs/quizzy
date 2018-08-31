@@ -24,6 +24,10 @@ class Team extends React.Component<Props, State> {
 
   private api: Api = Api.getInstance()
 
+  componentDidMount = () => {
+    setInterval(() => {this.heartbeat()}, 5000)
+  }
+
   public render() {
     const { match } = this.props
     const { members, questions, answers, latestQuestion } = this.state
@@ -57,6 +61,13 @@ class Team extends React.Component<Props, State> {
         />
       </TeamContainer>
     )
+  }
+
+  heartbeat = () => {
+    this.getMembers()
+    this.getQuestions()
+    this.getLatestQuestion()
+    this.getAnswers()
   }
 
   addQuestion = async (question: QuestionModel) => {

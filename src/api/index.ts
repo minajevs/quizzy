@@ -44,7 +44,7 @@ export default class Api {
     }
 
     createTeam = async (team: Team) => {
-        this.create<Team>('teams', team)
+        return this.create<Team>('teams', team)
     }
 
     getTeam = async (key: string): Promise<Team> => {
@@ -63,8 +63,6 @@ export default class Api {
             throw new Error('Please, init API first byt calling .init()!')
 
         const existing = await this.getValue<Member>(`members/${member.team.toLowerCase()}/${member.key}`)
-
-        console.log(`${member.team.toLowerCase()}/${member.key}`, existing)
 
         if (existing === null)
             return
@@ -109,7 +107,6 @@ export default class Api {
 
         for(const res of results){
             const member = {...res.member, points: res.member.points + res.points} as Member
-            console.log(member)
             this.saveMember(member)
         }
     }
@@ -144,8 +141,6 @@ export default class Api {
         if (this.database === undefined)
             throw new Error('Please, init API first byt calling .init()!')
         
-        console.log('SUP')
-
         const result = await this.database.ref(`answers/${answer.team}/${question}/${answer.key}`).set(answer)
     }
 
@@ -163,8 +158,6 @@ export default class Api {
             ...answer,
             authorName: (members.find(x => x.key === answer.author) || { name: `ERR: Can't find member with id` }).name
         } as Answer))
-
-        console.log(valuesWithMembers)
 
         return valuesWithMembers
     }

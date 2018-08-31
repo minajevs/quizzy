@@ -21,8 +21,8 @@ class Members extends React.Component<Props> {
     public render() {
         const { teamKey, members } = this.props
 
-        // if (members === undefined)
-        //    return Loading('members')
+        if (members === undefined)
+            return Loading('members')
 
         return <MembersComponent 
             members={members || []} 
