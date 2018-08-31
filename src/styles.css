@@ -1,0 +1,17 @@
+.extra {
+    margin-top: 0 !important
+}
+
+.main-column{
+    padding-left: 2rem !important;
+    padding-right: 2rem !important;
+}
+
+.question-item {
+    cursor: pointer;
+}
+
+.question-item:hover {
+    background: rgba(0,0,0,.03) !important;
+    color: black; 
+}
