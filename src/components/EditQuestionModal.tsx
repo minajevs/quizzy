@@ -2,7 +2,9 @@ import * as React from 'react'
 
 import QuestionModel from 'models/question'
 
-import { Button, Icon, Modal, Input } from 'semantic-ui-react'
+import Validation from './Validation'
+
+import { Button, Modal, Input } from 'semantic-ui-react'
 
 type Props = {
     open: boolean
@@ -12,13 +14,17 @@ type Props = {
 }
 
 type State = {
-    question: QuestionModel
+    question: QuestionModel,
+    validate: boolean
 }
 
 class EditQuestionModal extends React.Component<Props, State>{
-    state: State = { question: this.props.question }
+    state: State = { 
+        question: this.props.question,
+        validate: false
+     }
     render() {
-        const { question } = this.state
+        const { question, validate } = this.state
         const { open, onClose, onSave } = this.props
         return (
             <>
@@ -26,7 +32,8 @@ class EditQuestionModal extends React.Component<Props, State>{
                     <Modal.Header>Edit question</Modal.Header>
                     <Modal.Content>
                         <Input onChange={this.handleChange('text')} label='Text' value={question.text} type='text' />
-                        <Input onChange={this.handleChange('answer')} label='Answer' value={question.answer || 0} type='number' onKeyPress={this.onKeyPress('Enter', this.save)} />
+                        <Validation value={question.text} error="Question text can't be empty!" rule={this.notEmpty} validate={validate}/>
+                        <Input onChange={this.handleChange('answer')} label='Answer' value={question.answer} type='number' onKeyPress={this.onKeyPress('Enter', this.save)} />
                     </Modal.Content>
                     <Modal.Actions>
                         <Button onClick={onClose}>Cancel</Button>
@@ -38,6 +45,8 @@ class EditQuestionModal extends React.Component<Props, State>{
         )
     }
 
+    private notEmpty = (value: string) => value !== ''
+
     private onKeyPress = (expectedKey: string, func: () => void) => (event: React.KeyboardEvent) => {
         if(event.key === expectedKey)
           func()
@@ -48,6 +57,9 @@ class EditQuestionModal extends React.Component<Props, State>{
     }
 
     private save = () => {
+        if(!this.notEmpty(this.state.question.text))
+            return this.setState({validate: true})
+
         this.props.onSave(this.state.question)
     }
 }

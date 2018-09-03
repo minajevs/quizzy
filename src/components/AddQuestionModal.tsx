@@ -4,6 +4,8 @@ import * as moment from 'moment'
 import QuestionModel from 'models/question'
 import MemberModel from 'models/member'
 
+import Validation from './Validation'
+
 import { Button, Icon, Modal, Input, Label, Dropdown, DropdownItemProps, DropdownProps, Divider } from 'semantic-ui-react'
 
 type Props = {
@@ -15,6 +17,7 @@ type Props = {
 type State = {
     open: boolean
     question: QuestionModel
+    validate: boolean
 }
 
 const createDropDownOptions = (members: MemberModel[]):DropdownItemProps[] => members.map<DropdownItemProps>(member => ({
@@ -23,9 +26,14 @@ const createDropDownOptions = (members: MemberModel[]):DropdownItemProps[] => me
 }))
 
 class AddMemberModal extends React.Component<Props, State>{
-    state: State = {open: false, question: {key: '', author: '', authorName: '', answer: null, date: new Date().getTime(), text: '', team: this.props.teamKey}}
+    state: State = {
+        open: false, 
+        question: {key: '', author: '', authorName: '', answer: null, date: new Date().getTime(), text: '', team: this.props.teamKey},
+        validate: false
+    }
     render() {
         const { members } = this.props
+        const { validate } = this.state
         return (
             <>
                 <Button icon={true} labelPosition='left' onClick={this.show}>
@@ -36,8 +44,11 @@ class AddMemberModal extends React.Component<Props, State>{
                 <Modal open={this.state.open}>
                     <Modal.Header>New question</Modal.Header>
                     <Modal.Content>
-                        <Dropdown placeholder='Author' selection={true} options={createDropDownOptions(members)} onChange={this.handleDropdown}/>
+                        <Dropdown placeholder='Author' selection={true} options={createDropDownOptions(members)} onChange={this.handleDropdown} fluid/>
+                        <Validation value={this.state.question.author} error='Please choose an author!' rule={this.notEmpty} validate={validate}/>
+                        <br/>
                         <Input onChange={this.handleChange('text')} fluid={true} label='Text' placeholder='How many beers is enough?' type='text' onKeyPress={this.onKeyPress('Enter', this.add)}/>
+                        <Validation value={this.state.question.text} error="Question can't be empty" rule={this.notEmpty} validate={validate}/>
                     </Modal.Content>
                     <Modal.Actions>
                         <Button negative onClick={this.cancel}>Cancel</Button>
@@ -47,6 +58,8 @@ class AddMemberModal extends React.Component<Props, State>{
             </>
         )
     }
+
+    private notEmpty = (value: string) => value !== ''
 
     private onKeyPress = (expectedKey: string, func: () => void) => (event: React.KeyboardEvent) => {
         if(event.key === expectedKey)
@@ -66,6 +79,10 @@ class AddMemberModal extends React.Component<Props, State>{
     }
 
     private add = () => {
+        const { question } = this.state
+        if(!this.notEmpty(question.author) || !this.notEmpty(question.text))
+            return this.setState({validate: true})
+            
         this.props.onAdd(this.state.question)
         this.cancel()
     }

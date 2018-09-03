@@ -2,7 +2,9 @@ import * as React from 'react'
 
 import MemberModel from 'models/member'
 
-import { Button, Icon, Modal, Input } from 'semantic-ui-react'
+import Validation from 'components/Validation'
+
+import { Button, Icon, Modal, Input, Message } from 'semantic-ui-react'
 
 type Props = {
     onAdd: (member: MemberModel) => void
@@ -12,10 +14,15 @@ type Props = {
 type State = {
     open: boolean
     member: MemberModel
+    validate: boolean
 }
 
 class AddMemberModal extends React.Component<Props, State>{
-    state: State = {open: false, member: {key: '', name: '', points: 0, team: this.props.teamKey}}
+    state: State = {
+        open: false, 
+        member: {key: '', name: '', points: 0, team: this.props.teamKey},
+        validate: false
+    }
     render() {
         return (
             <>
@@ -26,7 +33,8 @@ class AddMemberModal extends React.Component<Props, State>{
                 <Modal open={this.state.open}>
                     <Modal.Header>New member</Modal.Header>
                     <Modal.Content>
-                        <Input onChange={this.handleChange('name')} label='Name' placeholder='John Doe' type='text' onKeyPress={this.onKeyPress('Enter', this.add)}/>
+                        <Input fluid onChange={this.handleChange('name')} label='Name' placeholder='John Doe' type='text' onKeyPress={this.onKeyPress('Enter', this.add)}/>
+                        <Validation value={this.state.member.name} error="Member name can't be empty!" rule={this.notEmpty} validate={this.state.validate}/>
                     </Modal.Content>
                     <Modal.Actions>
                         <Button negative onClick={this.cancel}>Cancel</Button>
@@ -36,6 +44,8 @@ class AddMemberModal extends React.Component<Props, State>{
             </>
         )
     }
+
+    private notEmpty = (value: string) => value !== ''
 
     private onKeyPress = (expectedKey: string, func: () => void) => (event: React.KeyboardEvent) => {
         if(event.key === expectedKey)
@@ -51,6 +61,9 @@ class AddMemberModal extends React.Component<Props, State>{
     }
 
     private add = () => {
+        if(!this.notEmpty(this.state.member.name))
+            return this.setState({validate: true})
+
         this.props.onAdd(this.state.member)
         this.cancel()
     }

@@ -48,7 +48,7 @@ export default class Api {
     }
 
     getTeam = async (key: string): Promise<Team> => {
-        return await this.getValue<Team>(`teams/${key.toLowerCase()}`)
+        return await this.getValue<Team>(`teams/${key}`)
     }
 
     createMember = async (member: Member) => {
@@ -62,12 +62,14 @@ export default class Api {
         if (this.database === undefined)
             throw new Error('Please, init API first byt calling .init()!')
 
-        const existing = await this.getValue<Member>(`members/${member.team.toLowerCase()}/${member.key}`)
+        console.log(member)
+
+        const existing = await this.getValue<Member>(`members/${member.team}/${member.key}`)
 
         if (existing === null)
             return
 
-        const result = await this.database.ref(`members/${member.team.toLowerCase()}/${member.key}`).set(member)
+        const result = await this.database.ref(`members/${member.team}/${member.key}`).set(member)
     }
 
     getMembersOfTeam = async (team: string): Promise<Member[]> => {
@@ -91,12 +93,12 @@ export default class Api {
 
         // update question
 
-        const existing = await this.getValue<Question>(`questions/${question.team.toLowerCase()}/${question.key}`)
+        const existing = await this.getValue<Question>(`questions/${question.team}/${question.key}`)
 
         if (existing === null)
             return
 
-        const result = await this.database.ref(`questions/${question.team.toLowerCase()}/${question.key}`).set(question)
+        const result = await this.database.ref(`questions/${question.team}/${question.key}`).set(question)
 
         // upadate scores
 
@@ -199,11 +201,11 @@ export default class Api {
         if (this.database === undefined)
             throw new Error('Please, init API first byt calling .init()!')
 
-        const existing = await this.getValue<T>(`${table}/${data.key.toLowerCase()}`)
+        const existing = await this.getValue<T>(`${table}/${data.key}`)
 
         if (existing !== null)
             return
 
-        const result = await this.database.ref(`${table.toLowerCase()}/${data.key.toLowerCase()}`).set(data)
+        const result = await this.database.ref(`${table}/${data.key}`).set(data)
     }
 }

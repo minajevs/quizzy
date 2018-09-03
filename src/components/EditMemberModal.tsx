@@ -2,6 +2,8 @@ import * as React from 'react'
 
 import MemberModel from 'models/member'
 
+import Validation from './Validation'
+
 import { Button, Icon, Modal, Input } from 'semantic-ui-react'
 
 type Props = {
@@ -12,13 +14,14 @@ type Props = {
 }
 
 type State = {
-    member: MemberModel
+    member: MemberModel,
+    validate: boolean
 }
 
 class EditMemberModal extends React.Component<Props, State>{
-    state: State = { member: this.props.member }
+    state: State = { member: this.props.member, validate: false }
     render() {
-        const { member } = this.state
+        const { member, validate } = this.state
         const { open, onClose, onSave } = this.props
         return (
             <>
@@ -26,6 +29,7 @@ class EditMemberModal extends React.Component<Props, State>{
                     <Modal.Header>Edit "{member.name}"</Modal.Header>
                     <Modal.Content>
                         <Input onChange={this.handleChange('name')} label='Name' value={member.name} type='text' onKeyPress={this.onKeyPress('Enter', this.save)} />
+                        <Validation value={member.name} error="Member name can't be empty!" rule={this.notEmpty} validate={validate}/>
                     </Modal.Content>
                     <Modal.Actions>
                         <Button onClick={onClose}>Cancel</Button>
@@ -37,6 +41,8 @@ class EditMemberModal extends React.Component<Props, State>{
         )
     }
 
+    private notEmpty = (value: string) => value !== ''
+
     private onKeyPress = (expectedKey: string, func: () => void) => (event: React.KeyboardEvent) => {
         if (event.key === expectedKey)
             func()
@@ -47,6 +53,9 @@ class EditMemberModal extends React.Component<Props, State>{
     }
 
     private save = () => {
+        if(!this.notEmpty(this.state.member.name))
+            return this.setState({validate: true})
+
         this.props.onSave(this.state.member)
     }
 }
