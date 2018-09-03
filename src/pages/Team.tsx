@@ -34,7 +34,7 @@ class Team extends React.Component<Props, State> {
     const teamKey = match.params['key']
 
     return (
-      <TeamContainer teamKey={teamKey} getTeam={this.api.getTeam}>
+      <TeamContainer teamKey={teamKey} getTeam={this.api.getTeam} onAddTeam={this.createTeam}>
         <AnswersContainer
           answers={answers}
           members={members}
@@ -68,6 +68,16 @@ class Team extends React.Component<Props, State> {
     this.getQuestions()
     this.getLatestQuestion()
     this.getAnswers()
+  }
+
+  createTeam = async (teamKey: string, teamName: string) => {
+    await this.api.createTeam({
+      key: teamKey,
+      name: teamName
+    })
+    
+    this.props.history.push(`/`, null)
+    this.props.history.push(`${teamKey}`, null)
   }
 
   addQuestion = async (question: QuestionModel) => {

@@ -3,11 +3,10 @@ import Api from 'api'
 import Team from 'models/team'
 import { RouteComponentProps, withRouter } from 'react-router'
 import { Grid, Container, Button, Icon, Modal, Input, Label, Dropdown, DropdownItemProps, DropdownProps, Segment, Header } from 'semantic-ui-react'
+import CreateNewTeam from 'components/CreateNewTeam';
 
 type State = {
   teamId: string
-  newTeamId: string
-  newTeamName: string
   error: boolean
 }
 
@@ -19,7 +18,7 @@ class App extends React.Component<Props, State> {
     super(props)
 
     this.api = Api.getInstance()
-    this.state = { newTeamId: '', newTeamName: '', teamId: '', error: false }
+    this.state = { teamId: '', error: false }
   }
 
   public render() {
@@ -41,26 +40,7 @@ class App extends React.Component<Props, State> {
                   action={{ color: 'teal', labelPosition: 'right', icon: 'angle double right', content: 'Join', onClick: this.join }}
                 />
                 <Header> Or create a new team: </Header>
-                <Input
-                  fluid
-                  type="text"
-                  name="newTeamId"
-                  label='New team id'
-                  placeholder='New team id'
-                  onChange={this.handleChange}
-                />
-                <br />
-                <Input
-                  fluid
-                  type="text"
-                  name="newTeamName"
-                  label='New team name'
-                  placeholder='New team name'
-                  onKeyPress={this.onKeyPress('Enter', this.addTeam)}
-                  onChange={this.handleChange}
-                />
-                <br />
-                <Button onClick={this.addTeam} color='teal' content='Create' labelPosition='right' icon='plus circle'/>
+                <CreateNewTeam onAddTeam={this.addTeam}/>
               </Segment>
             </Container>
           </Grid.Column>
@@ -69,12 +49,12 @@ class App extends React.Component<Props, State> {
     )
   }
 
-  addTeam = async () => {
+  addTeam = async (teamKey: string, teamName: string) => {
     await this.api.createTeam({
-      key: this.state.newTeamId,
-      name: this.state.newTeamName
+      key: teamKey,
+      name: teamName
     })
-    this.props.history.push(`${this.state.newTeamId}`)
+    this.props.history.push(`${teamKey}`)
   }
 
   join = () => {

@@ -2,35 +2,35 @@ import * as React from 'react'
 import TeamModel from 'models/team'
 import TeamComponent from 'components/Team'
 import Loading from 'components/Loading'
+import TeamNotFound from 'components/TeamNotFound'
 
 type State = {
     team?: TeamModel
-    notFound: boolean
 }
 
 type Props = {
+    onAddTeam: (teamKey: string, teamName: string) => void
     teamKey: string
     getTeam: (key: string) => Promise<TeamModel>
     children: React.ReactNode
 }
 
-const error = <div> Can't find that team! Do you want to create it? </div>
-
 class Team extends React.Component<Props, State> {
+    state: State = {}
     constructor(props: Props) {
         super(props)
-        this.state = { notFound: false }
         this.loadData()
     }
 
     public render() {
-        const { team, notFound } = this.state
-        const { children } = this.props
-        if (notFound)
-            return error
+        const { team } = this.state
+        const { children, teamKey, onAddTeam } = this.props
 
         if (team === undefined)
             return Loading('team')
+
+        if (team === null)
+            return TeamNotFound(teamKey, onAddTeam)
 
         return <TeamComponent team={team}>
             {children}
