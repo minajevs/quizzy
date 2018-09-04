@@ -31,9 +31,11 @@ class EditQuestionModal extends React.Component<Props, State>{
                 <Modal open={open}>
                     <Modal.Header>Edit question</Modal.Header>
                     <Modal.Content>
-                        <Input onChange={this.handleChange('text')} label='Text' value={question.text} type='text' />
+                        <label>Question</label>
+                        <Input onChange={this.handleChange('text')} fluid value={question.text} type='text' />
                         <Validation value={question.text} error="Question text can't be empty!" rule={this.notEmpty} validate={validate}/>
-                        <Input onChange={this.handleChange('answer')} label='Answer' value={question.answer} type='number' onKeyPress={this.onKeyPress('Enter', this.save)} />
+                        <label>Answer</label>
+                        <Input onChange={this.handleChange('answer')} fluid value={question.answer} type='number' onKeyPress={this.onKeyPress('Enter', this.save)} />
                     </Modal.Content>
                     <Modal.Actions>
                         <Button onClick={onClose}>Cancel</Button>

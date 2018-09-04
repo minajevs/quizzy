@@ -33,7 +33,8 @@ class AddMemberModal extends React.Component<Props, State>{
                 <Modal open={this.state.open}>
                     <Modal.Header>New member</Modal.Header>
                     <Modal.Content>
-                        <Input fluid onChange={this.handleChange('name')} label='Name' placeholder='John Doe' type='text' onKeyPress={this.onKeyPress('Enter', this.add)}/>
+                        <label>Member name</label>
+                        <Input fluid onChange={this.handleChange('name')} placeholder='John Doe' type='text' onKeyPress={this.onKeyPress('Enter', this.add)}/>
                         <Validation value={this.state.member.name} error="Member name can't be empty!" rule={this.notEmpty} validate={this.state.validate}/>
                     </Modal.Content>
                     <Modal.Actions>

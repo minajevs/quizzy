@@ -6,7 +6,7 @@ import MemberModel from 'models/member'
 
 import Validation from './Validation'
 
-import { Button, Icon, Modal, Input, Label, Dropdown, DropdownItemProps, DropdownProps, Divider } from 'semantic-ui-react'
+import { Button, Icon, Modal, Input, Dropdown, DropdownItemProps, DropdownProps, Divider } from 'semantic-ui-react'
 
 type Props = {
     onAdd: (question: QuestionModel) => void
@@ -44,10 +44,11 @@ class AddMemberModal extends React.Component<Props, State>{
                 <Modal open={this.state.open}>
                     <Modal.Header>New question</Modal.Header>
                     <Modal.Content>
-                        <Dropdown placeholder='Author' selection={true} options={createDropDownOptions(members)} onChange={this.handleDropdown} fluid/>
+                        <label>Author</label>
+                        <Dropdown placeholder='John Doe' selection={true} options={createDropDownOptions(members)} onChange={this.handleDropdown} fluid/>
                         <Validation value={this.state.question.author} error='Please choose an author!' rule={this.notEmpty} validate={validate}/>
-                        <br/>
-                        <Input onChange={this.handleChange('text')} fluid={true} label='Text' placeholder='How many beers is enough?' type='text' onKeyPress={this.onKeyPress('Enter', this.add)}/>
+                        <label>Question</label>
+                        <Input onChange={this.handleChange('text')} fluid={true} placeholder='How many beers is enough?' type='text' onKeyPress={this.onKeyPress('Enter', this.add)}/>
                         <Validation value={this.state.question.text} error="Question can't be empty" rule={this.notEmpty} validate={validate}/>
                     </Modal.Content>
                     <Modal.Actions>

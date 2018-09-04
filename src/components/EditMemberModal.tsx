@@ -28,7 +28,8 @@ class EditMemberModal extends React.Component<Props, State>{
                 <Modal open={open}>
                     <Modal.Header>Edit "{member.name}"</Modal.Header>
                     <Modal.Content>
-                        <Input onChange={this.handleChange('name')} label='Name' value={member.name} type='text' onKeyPress={this.onKeyPress('Enter', this.save)} />
+                        <label>Member name</label>
+                        <Input onChange={this.handleChange('name')} value={member.name} fluid type='text' onKeyPress={this.onKeyPress('Enter', this.save)} />
                         <Validation value={member.name} error="Member name can't be empty!" rule={this.notEmpty} validate={validate}/>
                     </Modal.Content>
                     <Modal.Actions>
