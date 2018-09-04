@@ -37,7 +37,7 @@ const color = (num: number): SemanticCOLORS => {
 
 const cup = (num: number) => num === 1 ? <Icon name='winner' /> : ''
 
-class Result extends React.Component<Props> {
+class ResultRow extends React.Component<Props> {
     public render() {
         const { result, index } = this.props
         return (
@@ -47,7 +47,10 @@ class Result extends React.Component<Props> {
                         <Header as='h4' image>
                             <Image>
                                 <Label size='large' circular color={color(index + 1)}>
-                                    {suffix(index + 1)}
+                                    { !result.isAuthor  
+                                        ? suffix(index + 1)
+                                        : <Icon name='pencil' fitted/>
+                                    }
                                 </Label>
                             </Image>
                             <Header.Content>
@@ -70,4 +73,4 @@ class Result extends React.Component<Props> {
     }
 }
 
-export default Result
+export default ResultRow

@@ -1,9 +1,10 @@
 import * as React from 'react'
 import AnswerModel from 'models/answer'
-import { Label, List, Container, Image, Input } from 'semantic-ui-react'
+import { Label, List, Container, Image, Input, Button } from 'semantic-ui-react'
 
 type Props = {
     answer: AnswerModel
+    units: string
     onAdd: (answer: AnswerModel) => void
 }
 
@@ -16,7 +17,7 @@ const answered = (answer: AnswerModel) => answer.answer !== undefined
 class Answer extends React.Component<Props, State> {
     state: State = { currentAnswer: { ...this.props.answer } }
     public render() {
-        const { answer } = this.props
+        const { answer, units } = this.props
         const { currentAnswer } = this.state
         return (
             <>
@@ -26,13 +27,20 @@ class Answer extends React.Component<Props, State> {
                             {!answered(answer)
                                 ? <Input
                                     fluid
-                                    label={answer.authorName}
-                                    action={{ color: 'teal', labelPosition: 'right', icon: 'check', content: 'Save', onClick: this.onSave }}
                                     defaultValue={currentAnswer}
                                     onChange={this.handleChange('answer')}
                                     onKeyPress={this.onKeyPress('Enter', this.onSave)}
                                     type='number'
-                                />
+                                    labelPosition='right'
+                                > 
+                                    <Label size='large'>{answer.authorName}</Label>
+                                    <input/>
+                                    { units !== '' && units !== undefined
+                                       ? <Label basic size='large'>{units}</Label>
+                                       : null
+                                    }
+                                    <Button color='teal' labelPosition='right' icon='check' content='Save' onClick={this.onSave} />
+                                </Input>
                                 : <Container text fluid>
                                     <Label color='green' size='large'>{answer.authorName}</Label>  answered
                                 </Container>

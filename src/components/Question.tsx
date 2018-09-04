@@ -1,12 +1,18 @@
 import * as React from 'react'
 import * as moment from 'moment'
+
+import AnswerModel from 'models/answer'
 import QuestionModel from 'models/question'
+import MemberModel from 'models/member'
 
 import { Grid, Label, Item, Image, Accordion, Button, Icon, Container } from 'semantic-ui-react'
 import EditQuestionModal from 'components/EditQuestionModal'
+import ViewQuestionModal from './ViewQuestionModal';
 
 type Props = {
     question: QuestionModel
+    members: MemberModel[]
+    answers: AnswerModel[]
     onSaveQuestion: (question: QuestionModel) => void
 }
 
@@ -24,7 +30,7 @@ const answer = (ans: number | null) => {
 class Member extends React.Component<Props, State> {
     state: State = { editing: false, open: false }
     public render() {
-        const { question } = this.props
+        const { question, answers, members } = this.props
         const { editing, open } = this.state
         return (
             <>
@@ -40,7 +46,9 @@ class Member extends React.Component<Props, State> {
                             By {question.authorName}
                         </Item.Meta>
                         <Item.Description>
-                            <Container>{answer(question.answer)}</Container>
+                            <Container>
+                                {answer(question.answer)}
+                            </Container>
                         </Item.Description>
                     </Item.Content>
                 </Item>
@@ -50,16 +58,28 @@ class Member extends React.Component<Props, State> {
                     onSave={this.onSave}
                     onClose={this.onModalClose}
                 />
+                <ViewQuestionModal
+                    open={open}
+                    question={question}
+                    answers={answers}
+                    members={members}
+                    onClose={this.onModalClose}
+                    onEdit={this.onEdit}
+                />
             </>
         )
     }
 
+    private onEdit = () => {
+        this.setState({ ...this.state, open: false, editing: true })
+    }
+
     private onOpen = () => {
-        this.setState({ ...this.state, editing: true })
+        this.setState({ ...this.state, open: true })
     }
 
     private onModalClose = () => {
-        this.setState({ ...this.state, editing: false })
+        this.setState({ ...this.state, editing: false, open: false })
     }
 
     private onSave = (question: QuestionModel) => {

@@ -1,6 +1,9 @@
 import * as React from 'react'
+
 import QuestionModel from 'models/question'
 import MemberModel from 'models/member'
+import AnswerModel from 'models/answer'
+
 import QuestionComponent from 'components/Question'
 import AddQuestionModal from 'components/AddQuestionModal'
 
@@ -11,6 +14,7 @@ import { Segment, Container, Item, List, Label, Image } from 'semantic-ui-react'
 type Props = {
   questions: QuestionModel[]
   members: MemberModel[]
+  answers: AnswerModel[]
   teamKey: string
   onAddQuestion: (member: QuestionModel) => void
   onSaveQuestion: (member: QuestionModel) => void
@@ -18,7 +22,7 @@ type Props = {
 
 class Members extends React.Component<Props> {
   public render() {
-    const { questions, teamKey, members, onAddQuestion, onSaveQuestion } = this.props
+    const { questions, teamKey, members, answers, onAddQuestion, onSaveQuestion } = this.props
 
     return (
       <Container>
@@ -32,7 +36,12 @@ class Members extends React.Component<Props> {
             {questions
               .sort(this.sortByDate)
               .map((question, index) =>
-                (<QuestionComponent question={question} key={index} onSaveQuestion={onSaveQuestion} />)
+                (<QuestionComponent
+                  question={question}
+                  answers={answers}
+                  members={members}
+                  key={index}
+                  onSaveQuestion={onSaveQuestion} />)
               )}
           </Item.Group>
         </Segment>

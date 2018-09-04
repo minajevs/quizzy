@@ -13,6 +13,7 @@ import AnswerModel from 'models/answer'
 type Props = {} & RouteComponentProps<{}>
 
 type State = {
+  loading: boolean
   members?: MemberModel[]
   questions?: QuestionModel[]
   answers?: AnswerModel[]
@@ -20,54 +21,53 @@ type State = {
 }
 
 class Team extends React.Component<Props, State> {
-  state: State = {}
+  state: State = {loading: false}
 
   private api: Api = Api.getInstance()
 
   componentDidMount = () => {
+    this.heartbeat()
     setInterval(() => {this.heartbeat()}, 5000)
   }
 
   public render() {
     const { match } = this.props
-    const { members, questions, answers, latestQuestion } = this.state
+    const { members, questions, answers, latestQuestion, loading } = this.state
     const teamKey = match.params['key']
 
     return (
-      <TeamContainer teamKey={teamKey} getTeam={this.api.getTeam} onAddTeam={this.createTeam}>
+      <TeamContainer loading={loading} teamKey={teamKey} getTeam={this.api.getTeam} onAddTeam={this.createTeam}>
         <AnswersContainer
           answers={answers}
           members={members}
           latestQuestion={latestQuestion}
-          getLatestQuestion={this.getLatestQuestion}
-          getAnswers={this.getAnswers}
           addAnswer={this.api.saveAnswer}
         />
         <QuestionContainer
           teamKey={teamKey}
+          answers={answers}
           members={members}
           questions={questions}
-          getMembers={this.getMembers}
-          getQuestions={this.getQuestions}
           addQuestion={this.addQuestion}
           saveQuestion={this.saveQuestion}
         />
         <MembersContainer 
           teamKey={teamKey} 
           members={members}
-          getMembers={this.getMembers}
-          addMember={this.api.createMember}
-          saveMember={this.api.saveMember}
+          addMember={this.addMember}
+          saveMember={this.saveMember}
         />
       </TeamContainer>
     )
   }
 
-  heartbeat = () => {
-    this.getMembers()
-    this.getQuestions()
-    this.getLatestQuestion()
-    this.getAnswers()
+  heartbeat = async () => {
+    await Promise.all([
+      this.getMembers(),
+      this.getQuestions(),
+      this.getLatestQuestion().then(() => 
+        this.getAnswers())
+    ])
   }
 
   createTeam = async (teamKey: string, teamName: string) => {
@@ -80,18 +80,32 @@ class Team extends React.Component<Props, State> {
     this.props.history.push(`${teamKey}`, null)
   }
 
+  addMember = async (member: MemberModel) => {
+    this.setLoading()
+    await this.api.createMember(member)
+    await this.heartbeat()
+    this.unsetLoading()
+  } 
+
+  saveMember = async (member: MemberModel) => {
+    this.setLoading()
+    await this.api.saveMember(member)
+    await this.heartbeat()
+    this.unsetLoading()
+  } 
+
   addQuestion = async (question: QuestionModel) => {
+    this.setLoading()
     await this.api.createQuestion(question)
-    this.getMembers()
-    this.getQuestions()
-    this.getLatestQuestion()
+    await this.heartbeat()
+    this.unsetLoading()
   }
 
   saveQuestion = async (question: QuestionModel) => {
+    this.setLoading()
     await this.api.saveQuestion(question)
-    this.getMembers()
-    this.getQuestions()
-    this.getLatestQuestion()
+    await this.heartbeat()
+    this.unsetLoading()
   }
 
   getLatestQuestion = async () => {
@@ -117,6 +131,8 @@ class Team extends React.Component<Props, State> {
     this.setState({answers})
   }
 
+  setLoading = () => this.setState({loading: true})
+  unsetLoading = () => this.setState({loading: false})
 }
 
 export default withRouter(Team)

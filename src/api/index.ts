@@ -1,4 +1,5 @@
-import { initializeApp, app, database } from 'firebase'
+import * as firebase from 'firebase/app'
+import 'firebase/database'
 
 import Team from 'models/team'
 import Member from 'models/member'
@@ -20,9 +21,9 @@ export default class Api {
     }
     private static instance: Api
 
-    private app: app.App
-    private database: database.Database
-    private teams: database.Reference
+    private app: firebase.app.App
+    private database: firebase.database.Database
+    private teams: firebase.database.Reference
     private config = {
         apiKey: "AIzaSyBxqTkwT_BM87TefrBgGL5DqIFdnGPupr4",
         authDomain: "quizzy-2ba94.firebaseapp.com",
@@ -37,7 +38,7 @@ export default class Api {
     }
 
     init = () => {
-        this.app = initializeApp(this.config)
+        this.app = firebase.initializeApp(this.config)
         this.database = this.app.database()
 
         this.teams = this.database.ref('teams')
@@ -62,8 +63,6 @@ export default class Api {
         if (this.database === undefined)
             throw new Error('Please, init API first byt calling .init()!')
 
-        console.log(member)
-
         const existing = await this.getValue<Member>(`members/${member.team}/${member.key}`)
 
         if (existing === null)
@@ -76,7 +75,9 @@ export default class Api {
         const members = await this.getValue<Member[]>(`members/${team}`) as {}
         if (members === null)
             return []
+
         const values = Object.keys(members).map(key => ({ ...members[key], key } as Member))
+
         return values
     }
 
@@ -91,22 +92,42 @@ export default class Api {
         if (this.database === undefined)
             throw new Error('Please, init API first byt calling .init()!')
 
-        // update question
+        // search for question
 
         const existing = await this.getValue<Question>(`questions/${question.team}/${question.key}`)
 
         if (existing === null)
             return
 
-        const result = await this.database.ref(`questions/${question.team}/${question.key}`).set(question)
-
         // upadate scores
 
-        const members = await this.getMembersOfTeam(question.team)
+        let members = await this.getMembersOfTeam(question.team)
         const answers = await this.getAnswersOfTeam(question.team, question.key)
 
+        // if answer was already existing, then we should remove old score before adding new ones 
+        if(existing.answer !== null && existing.answer !== undefined){
+            // get scores for previous answer
+            const previousResult = getResults(existing, answers, members)
+            const promises = []
+            
+            // remove points from members
+            for(const res of previousResult){
+                const member = {...res.member, points: res.member.points - res.points} as Member
+                promises.push(this.saveMember(member))
+            }
+
+            // await removal
+            await Promise.all(promises)
+            members = await this.getMembersOfTeam(question.team)
+        }
+
+        // update question
+        const result = await this.database.ref(`questions/${question.team}/${question.key}`).set(question)
+
+        // get scores for the new answer
         const results = getResults(question, answers, members)
 
+        // add points to members
         for(const res of results){
             const member = {...res.member, points: res.member.points + res.points} as Member
             this.saveMember(member)
@@ -147,11 +168,9 @@ export default class Api {
     }
 
     getAnswersOfTeam = async (team: string, question: string): Promise<Answer[]> => {
+        await this.createEmptyAnswers(team, question)
+
         const answers = await this.getValue<Question[]>(`answers/${team}/${question}`) as {}
-        if (answers === null) {
-            await this.createEmptyAnswers(team, question)
-            return await this.getAnswersOfTeam(team, question)
-        }
 
         const values = Object.keys(answers).map(key => ({ ...answers[key], key } as Answer))
         const members = await this.getMembersOfTeam(team)
@@ -174,8 +193,15 @@ export default class Api {
             return
 
         const members = await this.getMembersOfTeam(team)
+        const promises = []
 
         for (const member of members) {
+
+            const existingAnswer = await this.getValue<Answer>(`answers/${team}/${question}/${member.key}`)
+            
+            if(existingAnswer !== null && existingAnswer !== undefined)
+                continue
+
             const answer = {
                 answer: null,
                 author: member.key,
@@ -183,11 +209,13 @@ export default class Api {
                 key: ''
             } as Answer
 
-            const result = await this.database.ref(`answers`)
+            promises.push(this.database.ref(`answers`)
                 .child(team)
                 .child(question)
-                .push(answer)
+                .push(answer))
         }
+
+        await Promise.all(promises)
     }
 
     private getValue = async <T>(path: string): Promise<T> => {

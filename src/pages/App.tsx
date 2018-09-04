@@ -4,10 +4,11 @@ import Team from 'models/team'
 import { RouteComponentProps, withRouter } from 'react-router'
 import { Grid, Container, Button, Icon, Modal, Input, Label, Dropdown, DropdownItemProps, DropdownProps, Segment, Header } from 'semantic-ui-react'
 import CreateNewTeam from 'components/CreateNewTeam';
+import Validation from 'components/Validation';
 
 type State = {
   teamId: string
-  error: boolean
+  validate: boolean
 }
 
 type Props = {} & RouteComponentProps<{}>
@@ -18,7 +19,7 @@ class App extends React.Component<Props, State> {
     super(props)
 
     this.api = Api.getInstance()
-    this.state = { teamId: '', error: false }
+    this.state = { teamId: '', validate: false }
   }
 
   public render() {
@@ -39,6 +40,7 @@ class App extends React.Component<Props, State> {
                   onKeyPress={this.onKeyPress('Enter', this.join)}
                   action={{ color: 'teal', labelPosition: 'right', icon: 'angle double right', content: 'Join', onClick: this.join }}
                 />
+                <Validation value={this.state.teamId} error='Please enter an id!' rule={this.notEmpty} validate={this.state.validate}/>
                 <Header> Or create a new team: </Header>
                 <CreateNewTeam onAddTeam={this.addTeam}/>
               </Segment>
@@ -49,6 +51,8 @@ class App extends React.Component<Props, State> {
     )
   }
 
+  notEmpty = (value: string) => value !== '' && value !== undefined 
+
   addTeam = async (teamKey: string, teamName: string) => {
     await this.api.createTeam({
       key: teamKey,
@@ -58,6 +62,9 @@ class App extends React.Component<Props, State> {
   }
 
   join = () => {
+    if(!this.notEmpty(this.state.teamId))
+      return this.setState({validate: true})
+
     this.props.history.push(`${this.state.teamId}`)
   }
 

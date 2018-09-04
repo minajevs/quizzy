@@ -4,7 +4,7 @@ import QuestionModel from 'models/question'
 
 import Validation from './Validation'
 
-import { Button, Modal, Input } from 'semantic-ui-react'
+import { Button, Modal, Input, Form, TextArea, Message, Icon, Popup } from 'semantic-ui-react'
 
 type Props = {
     open: boolean
@@ -19,10 +19,10 @@ type State = {
 }
 
 class EditQuestionModal extends React.Component<Props, State>{
-    state: State = { 
+    state: State = {
         question: this.props.question,
         validate: false
-     }
+    }
     render() {
         const { question, validate } = this.state
         const { open, onClose, onSave } = this.props
@@ -31,11 +31,19 @@ class EditQuestionModal extends React.Component<Props, State>{
                 <Modal open={open}>
                     <Modal.Header>Edit question</Modal.Header>
                     <Modal.Content>
-                        <label>Question</label>
-                        <Input onChange={this.handleChange('text')} fluid value={question.text} type='text' />
-                        <Validation value={question.text} error="Question text can't be empty!" rule={this.notEmpty} validate={validate}/>
+                        <label>Description <Popup trigger={<Icon name='exclamation circle' />} content='Markdown supported!' /></label>
+                        <Form>
+                            <TextArea autoHeight onChange={this.handleTextAreaChange('description')} value={question.description} placeholder='1 drink is too few and 3 drinks is too many.' />
+                        </Form>
+                        <Form>
+                            <Form.Group>
+                                <Form.Input label='Question' onChange={this.handleChange('text')} value={question.text} width='12' placeholder='How many beers is enough?' type='text' onKeyPress={this.onKeyPress('Enter', this.save)} /> 
+                                <Form.Input label='Units of measure' onChange={this.handleChange('units')} value={question.units} width='4' placeholder='beer(s)' type='text' onKeyPress={this.onKeyPress('Enter', this.save)} /> 
+                            </Form.Group>
+                        </Form>
+                        <Validation value={question.text} error="Question text can't be empty!" rule={this.notEmpty} validate={validate} />
                         <label>Answer</label>
-                        <Input onChange={this.handleChange('answer')} fluid value={question.answer} type='number' onKeyPress={this.onKeyPress('Enter', this.save)} />
+                        <Input onChange={this.handleChange('answer')} fluid defaultValue={question.answer} type='number' onKeyPress={this.onKeyPress('Enter', this.save)} />
                     </Modal.Content>
                     <Modal.Actions>
                         <Button onClick={onClose}>Cancel</Button>
@@ -50,17 +58,21 @@ class EditQuestionModal extends React.Component<Props, State>{
     private notEmpty = (value: string) => value !== ''
 
     private onKeyPress = (expectedKey: string, func: () => void) => (event: React.KeyboardEvent) => {
-        if(event.key === expectedKey)
-          func()
-      }
+        if (event.key === expectedKey)
+            func()
+    }
 
     private handleChange = (field: keyof QuestionModel) => (event: React.ChangeEvent<HTMLInputElement>) => {
         this.setState({ ...this.state, question: { ...this.state.question, [field]: event.target.value } })
     }
 
+    private handleTextAreaChange = (field: keyof QuestionModel) => (event: React.ChangeEvent<HTMLTextAreaElement>) => {
+        this.setState({ ...this.state, question: { ...this.state.question, [field]: event.target.value } })
+    }
+
     private save = () => {
-        if(!this.notEmpty(this.state.question.text))
-            return this.setState({validate: true})
+        if (!this.notEmpty(this.state.question.text))
+            return this.setState({ validate: true })
 
         this.props.onSave(this.state.question)
     }

@@ -2,19 +2,22 @@ import * as React from 'react'
 import AnswerModel from 'models/answer'
 import QuestionModel from 'models/question'
 import AnswerComponent from 'components/Answer'
+import ViewQuestion from 'components/ViewQuestion'
 
-import { Segment, Container, List, Sticky } from 'semantic-ui-react'
+import * as ReactMarkdown from 'react-markdown'
+
+import { Segment, Container, List, Sticky, Divider } from 'semantic-ui-react'
 
 type Props = {
   answers: AnswerModel[]
-  question: QuestionModel
+  question?: QuestionModel
   onAddAnswer: (answer: AnswerModel) => void
 }
 
 class Answers extends React.Component<Props> {
   public render() {
     const { answers, onAddAnswer, question } = this.props
-    if (answers.length === 0)
+    if (question === undefined)
       return (
         <Container>
           <Segment>
@@ -25,14 +28,14 @@ class Answers extends React.Component<Props> {
     return (
         <Container>
           <Segment>
-            <Container text={true}>
-              {question.text}
+            <Container>
+              <ViewQuestion question={question}/>
             </Container>
             <List divided={true} selection={true} verticalAlign='middle'>
               {answers.map(answer =>
                 answer.author === question.author
                   ? null
-                  : <AnswerComponent answer={answer} key={answer.key} onAdd={onAddAnswer} />
+                  : <AnswerComponent answer={answer} units={question.units} key={answer.key} onAdd={onAddAnswer} />
               )}
             </List>
           </Segment>

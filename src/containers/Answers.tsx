@@ -1,4 +1,5 @@
 import * as React from 'react'
+
 import AnswerModel from 'models/answer'
 import QuestionModel from 'models/question'
 import MemberModel from 'models/member'
@@ -13,17 +14,10 @@ type Props = {
     answers?: AnswerModel[]
     members?: MemberModel[]
     latestQuestion?: QuestionModel
-    getLatestQuestion: () => Promise<void>
-    getAnswers: () => Promise<void>
     addAnswer: (question: string, answer: AnswerModel) => Promise<void>
 }
 
 class Answers extends React.Component<Props> {
-    constructor(props: Props) {
-        super(props)
-        this.loadData()
-    }
-
     public render() {
         const { answers, members, latestQuestion } = this.props
 
@@ -33,10 +27,7 @@ class Answers extends React.Component<Props> {
         if (members === undefined)
             return Loading('members')
 
-        if (latestQuestion === undefined)
-            return null // Loading()
-
-        if(latestQuestion.answer !== null && latestQuestion.answer !== undefined){
+        if(latestQuestion !== undefined && latestQuestion.answer !== null && latestQuestion.answer !== undefined){
             const results = getResults(latestQuestion, answers, members)
             return <ResultsComponent 
                 question={latestQuestion}
@@ -51,17 +42,8 @@ class Answers extends React.Component<Props> {
         />
     }
 
-    private loadData = async () => {
-        const { getAnswers, getLatestQuestion, latestQuestion } = this.props
-
-        await getLatestQuestion()
-        
-        await getAnswers()
-    }
-
     private addAnswer = async (answer: AnswerModel) => {
         await this.props.addAnswer((this.props.latestQuestion as QuestionModel).key, answer)
-        this.loadData()
     }
 }
 

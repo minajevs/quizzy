@@ -9,6 +9,7 @@ type State = {
 }
 
 type Props = {
+    loading: boolean
     onAddTeam: (teamKey: string, teamName: string) => void
     teamKey: string
     getTeam: (key: string) => Promise<TeamModel>
@@ -24,7 +25,7 @@ class Team extends React.Component<Props, State> {
 
     public render() {
         const { team } = this.state
-        const { children, teamKey, onAddTeam } = this.props
+        const { children, teamKey, onAddTeam, loading } = this.props
 
         if (team === undefined)
             return Loading('team')
@@ -32,7 +33,7 @@ class Team extends React.Component<Props, State> {
         if (team === null)
             return TeamNotFound(teamKey, onAddTeam)
 
-        return <TeamComponent team={team}>
+        return <TeamComponent team={team} loading={loading}>
             {children}
         </TeamComponent>
 

@@ -50,8 +50,6 @@ const getResults = (question: Question, answers: Answer[], members: Member[]) =>
         res.points = i-1                
     }
 
-    console.log(sortedResults)
-
     return sortedResults
 }
 

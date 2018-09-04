@@ -1,9 +1,11 @@
 import * as React from 'react'
 import ResultModel from 'models/result'
 import QuestionModel from 'models/question'
-import ResultComponent from 'components/Result'
 
-import { Segment, Container, Item, Table } from 'semantic-ui-react'
+import { Segment, Container } from 'semantic-ui-react'
+
+import ViewQuestion from 'components/ViewQuestion'
+import ResultsTable from 'components/ResultsTable'
 
 type Props = {
   question: QuestionModel
@@ -17,26 +19,10 @@ class Results extends React.Component<Props> {
     return (
       <Container>
         <Segment>
-          <Container text={true}>
-            {question.text}
+          <Container>
+            <ViewQuestion question={question} />
           </Container>
-          <Container text={true}>
-            Answer is: {question.answer}
-          </Container>
-          <Table basic='very' celled collapsing>
-            <Table.Header>
-              <Table.Row>
-                <Table.HeaderCell />
-                <Table.HeaderCell>Answered</Table.HeaderCell>
-                <Table.HeaderCell>Difference</Table.HeaderCell>
-              </Table.Row>
-            </Table.Header>
-            <Table.Body>
-              {results.map((result, index) =>
-                <ResultComponent result={result} index={index} key={index} />
-              )}
-            </Table.Body>
-          </Table>
+          <ResultsTable results={results} />
         </Segment>
       </Container>
     )
