@@ -28,7 +28,7 @@ class Team extends React.Component<Props> {
           </Grid.Column>
         </Grid.Row>
         <Grid.Row columns={2}>
-          <Grid.Column className='main-column'>
+          <Grid.Column className='main-column-left'>
             {React.Children.map(children1, (child, index) => (
               <Grid.Row key={index}>
                 {child}
@@ -36,7 +36,7 @@ class Team extends React.Component<Props> {
               </Grid.Row>
             ))}
           </Grid.Column>
-          <Grid.Column className='main-column'>
+          <Grid.Column className='main-column-right'>
             {React.Children.map(children2, (child, index) => (
               <Grid.Row key={index}>
                 {child}

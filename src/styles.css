@@ -2,9 +2,12 @@
     margin-top: 0 !important
 }
 
-.main-column{
-    padding-left: 2rem !important;
-    padding-right: 2rem !important;
+.main-column-left{
+    padding-left: 4rem !important;
+}
+
+.main-column-right{
+    padding-right: 4rem !important;
 }
 
 .question-item {
