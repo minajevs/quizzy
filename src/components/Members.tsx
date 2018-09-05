@@ -20,6 +20,7 @@ class Members extends React.Component<Props> {
         <Segment>
           <List divided={true} selection={true} verticalAlign='middle'>
             {members
+              .sort(this.sortByName)
               .sort(this.sortByRating)
               .map((member, index) =>
               <MemberComponent member={member} index={index} key={member.key} onSaveMember={onSaveMember}/>
@@ -32,6 +33,7 @@ class Members extends React.Component<Props> {
   }
 
   private sortByRating = (a: MemberModel, b: MemberModel) => a.points > b.points ? 0 : 1
+  private sortByName = (a: MemberModel, b: MemberModel) => a.name > b.name ? 0 : 1
 }
 
 export default Members
