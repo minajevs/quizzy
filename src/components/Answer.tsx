@@ -1,9 +1,13 @@
 import * as React from 'react'
+
 import AnswerModel from 'models/answer'
+import MemberModel from 'models/member'
+
 import { Label, List, Container, Image, Input, Button } from 'semantic-ui-react'
 
 type Props = {
     answer: AnswerModel
+    members: MemberModel[]
     units: string
     onAdd: (answer: AnswerModel) => void
 }
@@ -13,11 +17,12 @@ type State = {
 }
 
 const answered = (answer: AnswerModel) => answer.answer !== undefined
+const authorName = (members: MemberModel[], key: string) => (members.find(x => x.key === key) as MemberModel).name
 
 class Answer extends React.Component<Props, State> {
     state: State = { currentAnswer: { ...this.props.answer } }
     public render() {
-        const { answer, units } = this.props
+        const { answer, members, units } = this.props
         const { currentAnswer } = this.state
         return (
             <>
@@ -33,7 +38,7 @@ class Answer extends React.Component<Props, State> {
                                     type='number'
                                     labelPosition='right'
                                 > 
-                                    <Label size='large'>{answer.authorName}</Label>
+                                    <Label size='large'>{authorName(members, answer.author)}</Label>
                                     <input/>
                                     { units !== '' && units !== undefined
                                        ? <Label basic size='large'>{units}</Label>
@@ -42,7 +47,7 @@ class Answer extends React.Component<Props, State> {
                                     <Button color='teal' labelPosition='right' icon='check' content='Save' onClick={this.onSave} />
                                 </Input>
                                 : <Container text fluid>
-                                    <Label color='green' size='large'>{answer.authorName}</Label>  answered
+                                    <Label color='green' size='large'>{authorName(members, answer.author)}</Label>  answered
                                 </Container>
                             }
                         </List.Description>

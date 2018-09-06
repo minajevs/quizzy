@@ -6,6 +6,7 @@ import AnswersContainer from 'containers/Answers'
 import QuestionContainer from 'containers/Questions'
 import { RouteComponentProps, withRouter } from 'react-router'
 
+import TeamModel from 'models/team'
 import MemberModel from 'models/member'
 import QuestionModel from 'models/question'
 import AnswerModel from 'models/answer'
@@ -14,29 +15,47 @@ type Props = {} & RouteComponentProps<{}>
 
 type State = {
   loading: boolean
-  members?: MemberModel[]
-  questions?: QuestionModel[]
-  answers?: AnswerModel[]
-  latestQuestion?: QuestionModel
+  team: TeamModel | null
+  members: MemberModel[] | null
+  questions: QuestionModel[] | null
+  answers: AnswerModel[] | null
+  latestQuestion: QuestionModel | null
 }
 
-class Team extends React.Component<Props, State> {
-  state: State = {loading: false}
+class Team extends React.PureComponent<Props, State> {
+  constructor(props: Props) {
+    super(props)
+
+    this.state = {
+      loading: false,
+      team: null,
+      members: null,
+      questions: null,
+      answers: null,
+      latestQuestion: null
+    }
+    this.loadData()
+  }
 
   private api: Api = Api.getInstance()
 
-  componentDidMount = () => {
-    this.heartbeat()
-    setInterval(() => {this.heartbeat()}, 5000)
+  loadData = async () => {
+    this.api.subscribe<TeamModel>('team', team => this.setState({ team }))
+    this.api.subscribe<MemberModel[]>('members', members => this.setState({ members }))
+    this.api.subscribe<QuestionModel[]>('questions', questions => this.setState({ questions }))
+    this.api.subscribe<AnswerModel[]>('answers', answers => this.setState({ answers }))
+    this.api.subscribe<QuestionModel>('latestQuestion', latestQuestion => this.setState({ latestQuestion }))
+
+    this.api.loadFor(this.props.match.params['key'])
   }
 
   public render() {
     const { match } = this.props
-    const { members, questions, answers, latestQuestion, loading } = this.state
+    const { loading, team, answers, members, questions, latestQuestion } = this.state
     const teamKey = match.params['key']
 
     return (
-      <TeamContainer loading={loading} teamKey={teamKey} getTeam={this.api.getTeam} onAddTeam={this.createTeam}>
+      <TeamContainer team={team} loading={loading} teamKey={teamKey} onAddTeam={this.createTeam}>
         <AnswersContainer
           answers={answers}
           members={members}
@@ -51,8 +70,8 @@ class Team extends React.Component<Props, State> {
           addQuestion={this.addQuestion}
           saveQuestion={this.saveQuestion}
         />
-        <MembersContainer 
-          teamKey={teamKey} 
+        <MembersContainer
+          teamKey={teamKey}
           members={members}
           addMember={this.addMember}
           saveMember={this.saveMember}
@@ -61,21 +80,12 @@ class Team extends React.Component<Props, State> {
     )
   }
 
-  heartbeat = async () => {
-    await Promise.all([
-      this.getMembers(),
-      this.getQuestions(),
-      this.getLatestQuestion().then(() => 
-        this.getAnswers())
-    ])
-  }
-
   createTeam = async (teamKey: string, teamName: string) => {
     await this.api.createTeam({
       key: teamKey,
       name: teamName
     })
-    
+
     this.props.history.push(`/`, null)
     this.props.history.push(`${teamKey}`, null)
   }
@@ -83,56 +93,29 @@ class Team extends React.Component<Props, State> {
   addMember = async (member: MemberModel) => {
     this.setLoading()
     await this.api.createMember(member)
-    await this.heartbeat()
     this.unsetLoading()
-  } 
+  }
 
   saveMember = async (member: MemberModel) => {
     this.setLoading()
     await this.api.saveMember(member)
-    await this.heartbeat()
     this.unsetLoading()
-  } 
+  }
 
   addQuestion = async (question: QuestionModel) => {
     this.setLoading()
     await this.api.createQuestion(question)
-    await this.heartbeat()
     this.unsetLoading()
   }
 
   saveQuestion = async (question: QuestionModel) => {
     this.setLoading()
     await this.api.saveQuestion(question)
-    await this.heartbeat()
     this.unsetLoading()
   }
 
-  getLatestQuestion = async () => {
-    const question = await this.api.getLatestQuestion(this.props.match.params['key'])
-    this.setState({latestQuestion: question})
-  }
-
-  getMembers = async () => {
-    const members = await this.api.getMembersOfTeam(this.props.match.params['key'])
-    this.setState({members})
-  }
-
-  getQuestions = async () => {
-    const questions = await this.api.getQuestionOfTeam(this.props.match.params['key'])
-    this.setState({questions})
-  }
-
-  getAnswers = async () => {
-    const answers = this.state.latestQuestion !== undefined
-    ? await this.api.getAnswersOfTeam(this.props.match.params['key'], this.state.latestQuestion.key)
-    : []
-
-    this.setState({answers})
-  }
-
-  setLoading = () => this.setState({loading: true})
-  unsetLoading = () => this.setState({loading: false})
+  setLoading = () => this.setState({ loading: true })
+  unsetLoading = () => this.setState({ loading: false })
 }
 
 export default withRouter(Team)

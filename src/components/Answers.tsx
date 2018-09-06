@@ -1,6 +1,7 @@
 import * as React from 'react'
 import AnswerModel from 'models/answer'
 import QuestionModel from 'models/question'
+import MemberModel from 'models/member'
 import AnswerComponent from 'components/Answer'
 import ViewQuestion from 'components/ViewQuestion'
 
@@ -10,21 +11,14 @@ import { Segment, Container, List, Sticky, Divider } from 'semantic-ui-react'
 
 type Props = {
   answers: AnswerModel[]
-  question?: QuestionModel
+  members: MemberModel[]
+  question: QuestionModel
   onAddAnswer: (answer: AnswerModel) => void
 }
 
 class Answers extends React.Component<Props> {
   public render() {
-    const { answers, onAddAnswer, question } = this.props
-    if (question === undefined)
-      return (
-        <Container>
-          <Segment>
-            No questions yet
-          </Segment>
-        </Container>
-      )
+    const { answers, onAddAnswer, question, members } = this.props
     return (
         <Container>
           <Segment>
@@ -35,7 +29,7 @@ class Answers extends React.Component<Props> {
               {answers.map(answer =>
                 answer.author === question.author
                   ? null
-                  : <AnswerComponent answer={answer} units={question.units} key={answer.key} onAdd={onAddAnswer} />
+                  : <AnswerComponent answer={answer} members={members} units={question.units} key={answer.key} onAdd={onAddAnswer} />
               )}
             </List>
           </Segment>

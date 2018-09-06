@@ -4,7 +4,8 @@ import * as moment from 'moment'
 import QuestionModel from 'models/question'
 import MemberModel from 'models/member'
 
-import Validation from './Validation'
+import Validation from 'components/Validation'
+import UnitsInput from 'components/UnitsInput'
 
 import { Button, Icon, Modal, Input, Dropdown, DropdownItemProps, DropdownProps, Divider, TextArea, Form, Message, Popup } from 'semantic-ui-react'
 
@@ -31,12 +32,12 @@ class AddMemberModal extends React.Component<Props, State>{
         question: {
             key: '',
             author: '',
-            authorName: '',
             answer: null,
             date: new Date().getTime(),
             text: '',
             description: '',
             units: '',
+            unitsMeasure: 'free',
             team: this.props.teamKey,    
         },
         validate: false
@@ -64,7 +65,9 @@ class AddMemberModal extends React.Component<Props, State>{
                         <Form>
                             <Form.Group>
                                 <Form.Input label='Question' onChange={this.handleChange('text')} width='12' placeholder='How many beers is enough?' type='text' onKeyPress={this.onKeyPress('Enter', this.add)} /> 
-                                <Form.Input label='Units of measure' onChange={this.handleChange('units')} width='4' placeholder='beer(s)' type='text' onKeyPress={this.onKeyPress('Enter', this.add)} /> 
+                                <Form.Field width='4'>
+                                    <UnitsInput onChange={this.handleChange('units')} onKeyPress={this.onKeyPress('Enter', this.add)}/>
+                                </Form.Field>
                             </Form.Group>
                         </Form>
                         <Validation value={this.state.question.text} error="Question can't be empty" rule={this.notEmpty} validate={validate} />
@@ -92,13 +95,13 @@ class AddMemberModal extends React.Component<Props, State>{
     private handleTextAreaChange = (field: keyof QuestionModel) => (event: React.ChangeEvent<HTMLTextAreaElement>) => {
         this.setState({ ...this.state, question: { ...this.state.question, [field]: event.target.value } })
     }
-
+ 
     private handleDropdown = (event: React.SyntheticEvent<HTMLElement>, data: DropdownProps) => {
         this.setState({ ...this.state, question: { ...this.state.question, author: data.value as string } })
     }
 
     private show = () => {
-        this.setState({ open: true, question: { key: '', author: '', authorName: '', answer: null, date: new Date().getTime(), text: '', description: '', units: '', team: this.props.teamKey } })
+        this.setState({ open: true, question: { key: '', author: '', answer: null, date: new Date().getTime(), text: '', description: '', unitsMeasure: 'free', units: '', team: this.props.teamKey } })
     }
 
     private add = () => {
@@ -111,7 +114,7 @@ class AddMemberModal extends React.Component<Props, State>{
     }
 
     private cancel = () => {
-        this.setState({ open: false })
+        this.setState({ open: false, validate: false })
     }
 }
 

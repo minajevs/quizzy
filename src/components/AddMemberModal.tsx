@@ -19,8 +19,8 @@ type State = {
 
 class AddMemberModal extends React.Component<Props, State>{
     state: State = {
-        open: false, 
-        member: {key: '', name: '', points: 0, team: this.props.teamKey},
+        open: false,
+        member: { key: '', name: '', points: 0, team: this.props.teamKey },
         validate: false
     }
     render() {
@@ -34,8 +34,8 @@ class AddMemberModal extends React.Component<Props, State>{
                     <Modal.Header>New member</Modal.Header>
                     <Modal.Content>
                         <label>Member name</label>
-                        <Input fluid onChange={this.handleChange('name')} placeholder='John Doe' type='text' onKeyPress={this.onKeyPress('Enter', this.add)}/>
-                        <Validation value={this.state.member.name} error="Member name can't be empty!" rule={this.notEmpty} validate={this.state.validate}/>
+                        <Input fluid onChange={this.handleChange('name')} placeholder='John Doe' type='text' onKeyPress={this.onKeyPress('Enter', this.add)} />
+                        <Validation value={this.state.member.name} error="Member name can't be empty!" rule={this.notEmpty} validate={this.state.validate} />
                     </Modal.Content>
                     <Modal.Actions>
                         <Button negative onClick={this.cancel}>Cancel</Button>
@@ -49,28 +49,28 @@ class AddMemberModal extends React.Component<Props, State>{
     private notEmpty = (value: string) => value !== ''
 
     private onKeyPress = (expectedKey: string, func: () => void) => (event: React.KeyboardEvent) => {
-        if(event.key === expectedKey)
-          func()
-      }
+        if (event.key === expectedKey)
+            func()
+    }
 
     private handleChange = (field: keyof MemberModel) => (event: React.ChangeEvent<HTMLInputElement>) => {
-        this.setState({...this.state, member: {...this.state.member, [field]: event.target.value}})
+        this.setState({ ...this.state, member: { ...this.state.member, [field]: event.target.value } })
     }
 
     private show = () => {
-        this.setState({ open: true, member: {key: '', name: '', points: 0, team: this.props.teamKey}})
+        this.setState({ open: true, member: { key: '', name: '', points: 0, team: this.props.teamKey } })
     }
 
     private add = () => {
-        if(!this.notEmpty(this.state.member.name))
-            return this.setState({validate: true})
+        if (!this.notEmpty(this.state.member.name))
+            return this.setState({ validate: true })
 
         this.props.onAdd(this.state.member)
         this.cancel()
     }
 
     private cancel = () => {
-        this.setState({ open: false })
+        this.setState({ open: false, validate: false })
     }
 }
 

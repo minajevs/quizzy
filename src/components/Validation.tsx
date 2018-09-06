@@ -8,24 +8,13 @@ type Props = {
     validate?: boolean
 }
 
-type State = {
-    touched: boolean
-}
-
-class Validation extends React.Component<Props, State> {
-    state: State = { touched: false }
+class Validation extends React.Component<Props> {
     render() {
         const { error, value, rule, validate } = this.props
-        const { touched } = this.state
         const shouldValidate = validate === undefined ? true : validate
         return (
-            <Message hidden={!shouldValidate || !touched || rule(value)} attached='bottom' content={error} error/>
+            <Message hidden={!shouldValidate || rule(value)} attached='bottom' content={error} error/>
         )
-    }
-
-    componentDidUpdate(prevProps: Props){
-        if(!this.state.touched && (prevProps.value !== this.props.value || prevProps.validate !== this.props.validate))
-            this.setState({touched: true})
     }
 }
 

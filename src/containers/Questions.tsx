@@ -9,19 +9,18 @@ import Loading from 'components/Loading'
 
 type Props = {
     teamKey: string
-    members?: MemberModel[]
-    answers?: AnswerModel[]
-    questions?: QuestionModel[]
+    members: MemberModel[] | null
+    answers: AnswerModel[] | null
+    questions: QuestionModel[] | null
     addQuestion: (question: QuestionModel) => Promise<void>
     saveQuestion: (question: QuestionModel) => Promise<void>
 }
 
 class Questions extends React.Component<Props> {
-    state = {questions: undefined, members: undefined}
     public render() {
         const { teamKey, questions, members, answers } = this.props
 
-        if (questions === undefined)
+        if (questions === null)
             return Loading('questions')
 
         return <QuestionsComponent 

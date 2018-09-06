@@ -16,6 +16,7 @@
     "ordered-imports": false,
     "interface-over-type-literal": false,
     "no-string-literal": false,
-    "jsx-boolean-value": false
+    "jsx-boolean-value": false,
+    "member-ordering": false
   }
 }

@@ -10,6 +10,7 @@ import Result from 'models/result'
 import getResults from 'api/results'
 
 import * as moment from 'moment'
+import { EventEmitter } from 'events'
 
 export default class Api {
     // Api is a singleton service in this case
@@ -19,11 +20,21 @@ export default class Api {
 
         return Api.instance
     }
-    private static instance: Api
 
+    private emitter: EventEmitter = new EventEmitter()
+
+    private state: {
+        readonly team?: Team | null
+        readonly members: Member[]
+        readonly questions: Question[]
+        readonly answers: Answer[]
+        latestQuestion: Question | null
+    }
+
+
+    private static instance: Api
     private app: firebase.app.App
     private database: firebase.database.Database
-    private teams: firebase.database.Reference
     private config = {
         apiKey: "AIzaSyBxqTkwT_BM87TefrBgGL5DqIFdnGPupr4",
         authDomain: "quizzy-2ba94.firebaseapp.com",
@@ -41,170 +52,168 @@ export default class Api {
         this.app = firebase.initializeApp(this.config)
         this.database = this.app.database()
 
-        this.teams = this.database.ref('teams')
+        this.state = {
+            questions: [],
+            answers: [],
+            members: [],
+            latestQuestion: null,
+            team: null
+        }
     }
 
-    createTeam = async (team: Team) => {
+    subscribe = <T>(event: keyof Api['state'], callback: (newData: T) => void) => {
+        this.emitter.addListener(event, callback)
+    }
+
+    loadFor = async (teamKey: string) => {
+        await Promise.all([
+            this.loadAndBind(`teams/${teamKey}`, 'team'),
+            this.loadAndBind(`members/${teamKey}`, 'members', this.firebaseArrayBinder)
+        ])
+
+        const questionRef = await this.loadAndBind(`questions/${teamKey}`, 'questions', this.firebaseArrayBinder)
+        this.state.latestQuestion = this.getLatestQuestion()
+        if (this.state.latestQuestion !== null && this.state.latestQuestion !== undefined)
+            await this.loadAndBind(`answers/${teamKey}/${this.state.latestQuestion.key}`, 'answers', this.firebaseArrayBinder)
+
+
+        questionRef.on('value', async snap => {
+            const latest = this.getLatestQuestion()
+            this.state.latestQuestion = latest
+            if (latest === null || latest === undefined) return
+
+            await this.createEmptyAnswers(teamKey, latest.key)
+            this.emitter.emit('latestQuestion', this.state.latestQuestion)
+            this.loadAndBind(`answers/${teamKey}/${latest.key}`, 'answers', this.firebaseArrayBinder)
+        })
+
+        console.log('finished loading and binding stuff', this.state)
+        return this.state
+    }
+
+    private loadAndBind = async (
+        path: string,
+        item: keyof Api['state'],
+        customBinder: (snap: firebase.database.DataSnapshot | null) => any = (snap) => snap !== null ? snap.val() : null
+    ): Promise<firebase.database.Reference> => {
+        const ref = this.database.ref(path)
+        this.state = { ...this.state, [item]: customBinder(await ref.once('value')) }
+
+        ref.on('value', snap => {
+            this.state = { ...this.state, [item]: customBinder(snap) }
+            this.emitter.emit(item, this.state[item])
+        })
+
+        return ref
+    }
+
+    private firebaseArrayBinder = (snap: firebase.database.DataSnapshot | null) => snap !== null
+        ? Object.keys(snap.val() || {}).map(k => ({ ...snap.val()[k], key: k }))
+        : null
+
+    private getLatestQuestion = (): Question | null => {
+        return this.state.questions !== null
+            ? this.state.questions
+                .sort((a, b) => moment(b.date).diff(moment(a.date)))[0]
+            : null
+    }
+
+    createTeam = async (team: Team): Promise<void> => {
         return this.create<Team>('teams', team)
     }
 
-    getTeam = async (key: string): Promise<Team> => {
-        return await this.getValue<Team>(`teams/${key}`)
-    }
-
-    createMember = async (member: Member) => {
+    createMember = async (member: Member): Promise<void> => {
         if (this.database === undefined)
             throw new Error('Please, init API first byt calling .init()!')
 
-        const result = await this.database.ref(`members`).child(member.team).push(member)
+        return this.database.ref(`members`).child(member.team).push(member)
     }
 
-    saveMember = async (member: Member) => {
+    saveMember = async (member: Member): Promise<void> => {
         if (this.database === undefined)
             throw new Error('Please, init API first byt calling .init()!')
 
-        const existing = await this.getValue<Member>(`members/${member.team}/${member.key}`)
-
-        if (existing === null)
-            return
-
-        const result = await this.database.ref(`members/${member.team}/${member.key}`).set(member)
-    }
-
-    getMembersOfTeam = async (team: string): Promise<Member[]> => {
-        const members = await this.getValue<Member[]>(`members/${team}`) as {}
-        if (members === null)
-            return []
-
-        const values = Object.keys(members).map(key => ({ ...members[key], key } as Member))
-
-        return values
+        return this.database.ref(`members/${member.team}/${member.key}`).set(member)
     }
 
     createQuestion = async (question: Question) => {
         if (this.database === undefined)
             throw new Error('Please, init API first byt calling .init()!')
 
-        const result = await this.database.ref(`questions`).child(question.team).push(question)
+        const result = await this.database.ref(`questions`)
+            .child(question.team)
+            .push(question)
+            .once('value')
+
+        if (result.key === null)
+            return
     }
 
     saveQuestion = async (question: Question) => {
         if (this.database === undefined)
             throw new Error('Please, init API first byt calling .init()!')
 
-        // search for question
+        if (this.state.answers === null)
+            throw new Error('Ups! That should not happen!')
 
-        const existing = await this.getValue<Question>(`questions/${question.team}/${question.key}`)
+        const questionToUpdate = this.state.questions.find(x => x.key === question.key)
 
-        if (existing === null)
-            return
+        if (questionToUpdate !== undefined) {
+            // update stuff
 
-        // upadate scores
+            // if answer was already existing, then we should remove old score before adding new ones 
+            if (questionToUpdate.answer !== null && questionToUpdate.answer !== undefined) {
+                console.log(questionToUpdate)
+                // get scores for previous answer
+                const previousResult = getResults(questionToUpdate, this.state.answers, this.state.members)
+                const promises = []
 
-        let members = await this.getMembersOfTeam(question.team)
-        const answers = await this.getAnswersOfTeam(question.team, question.key)
+                // remove points from members
+                for (const res of previousResult) {
+                    const member = { ...res.member, points: res.member.points - res.points } as Member
+                    promises.push(this.saveMember(member))
+                }
 
-        // if answer was already existing, then we should remove old score before adding new ones 
-        if(existing.answer !== null && existing.answer !== undefined){
-            // get scores for previous answer
-            const previousResult = getResults(existing, answers, members)
-            const promises = []
-            
-            // remove points from members
-            for(const res of previousResult){
-                const member = {...res.member, points: res.member.points - res.points} as Member
-                promises.push(this.saveMember(member))
+                // await removal
+                await Promise.all(promises)
             }
-
-            // await removal
-            await Promise.all(promises)
-            members = await this.getMembersOfTeam(question.team)
         }
 
-        // update question
-        const result = await this.database.ref(`questions/${question.team}/${question.key}`).set(question)
+        await this.database.ref(`questions/${question.team}/${question.key}`).set(question)
 
-        // get scores for the new answer
-        const results = getResults(question, answers, members)
+        if (question.answer !== null && question.answer !== undefined) {
+            // get scores for the new answer
+            const results = getResults(question, this.state.answers, this.state.members)
 
-        // add points to members
-        for(const res of results){
-            const member = {...res.member, points: res.member.points + res.points} as Member
-            this.saveMember(member)
+            // add points to members
+            for (const res of results) {
+                const member = { ...res.member, points: res.member.points + res.points } as Member
+                this.saveMember(member)
+            }
         }
-    }
-
-    getQuestionOfTeam = async (team: string): Promise<Question[]> => {
-        const questions = await this.getValue<Question[]>(`questions/${team}`) as {}
-        if (questions === null)
-            return []
-
-        const values = Object.keys(questions).map(key => ({ ...questions[key], key } as Question))
-        const members = await this.getMembersOfTeam(team)
-
-        const valuesWithMembers = values.map(question => ({
-            ...question,
-            authorName: (members.find(x => x.key === question.author) || { name: `ERR: Can't find member with id` }).name
-        } as Question))
-
-        return valuesWithMembers
-    }
-
-    getLatestQuestion = async (team: string): Promise<Question> => {
-        const questions = await this.getQuestionOfTeam(team)
-
-        if (questions === null) return new Question()
-
-        const sorted = questions.sort((a, b) => moment(b.date).diff(moment(a.date)))
-
-        return sorted[0]
     }
 
     saveAnswer = async (question: string, answer: Answer) => {
         if (this.database === undefined)
             throw new Error('Please, init API first byt calling .init()!')
-        
+
         const result = await this.database.ref(`answers/${answer.team}/${question}/${answer.key}`).set(answer)
-    }
-
-    getAnswersOfTeam = async (team: string, question: string): Promise<Answer[]> => {
-        await this.createEmptyAnswers(team, question)
-
-        const answers = await this.getValue<Question[]>(`answers/${team}/${question}`) as {}
-
-        const values = Object.keys(answers).map(key => ({ ...answers[key], key } as Answer))
-        const members = await this.getMembersOfTeam(team)
-
-        const valuesWithMembers = values.map(answer => ({
-            ...answer,
-            authorName: (members.find(x => x.key === answer.author) || { name: `ERR: Can't find member with id` }).name
-        } as Answer))
-
-        return valuesWithMembers
     }
 
     private createEmptyAnswers = async (team: string, question: string): Promise<void> => {
         if (this.database === undefined)
             throw new Error('Please, init API first byt calling .init()!')
 
-        const existing = await this.getValue<Question>(`answers/${team}/${question}`)
-
-        if (existing !== null)
-            return
-
-        const members = await this.getMembersOfTeam(team)
         const promises = []
 
-        for (const member of members) {
-
-            const existingAnswer = await this.getValue<Answer>(`answers/${team}/${question}/${member.key}`)
-            
-            if(existingAnswer !== null && existingAnswer !== undefined)
+        for (const member of this.state.members) {
+            if (this.state.answers.find(x => x.author === member.key && x.question === question) !== undefined)
                 continue
 
             const answer = {
                 answer: null,
                 author: member.key,
+                question,
                 team,
                 key: ''
             } as Answer
@@ -218,22 +227,10 @@ export default class Api {
         await Promise.all(promises)
     }
 
-    private getValue = async <T>(path: string): Promise<T> => {
-        const snapshot = await this.database.ref(path).once('value')
-        const value = snapshot.val() as T
-
-        return value
-    }
-
     private create = async <T extends { key: string }>(table: string, data: T) => {
         if (this.database === undefined)
             throw new Error('Please, init API first byt calling .init()!')
 
-        const existing = await this.getValue<T>(`${table}/${data.key}`)
-
-        if (existing !== null)
-            return
-
-        const result = await this.database.ref(`${table}/${data.key}`).set(data)
+        return this.database.ref(`${table}/${data.key}`).set(data)
     }
 }

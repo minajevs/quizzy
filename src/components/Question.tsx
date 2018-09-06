@@ -27,6 +27,8 @@ const answer = (ans: number | null) => {
         : null
 }
 
+const authorName = (members: MemberModel[], key: string) => (members.find(x => x.key === key) as MemberModel).name
+
 class Member extends React.Component<Props, State> {
     state: State = { editing: false, open: false }
     public render() {
@@ -43,7 +45,7 @@ class Member extends React.Component<Props, State> {
                             <Container text fluid>{question.text}</Container>
                         </Item.Content>
                         <Item.Meta>
-                            By {question.authorName}
+                            By {authorName(members, question.author)}
                         </Item.Meta>
                         <Item.Description>
                             <Container>
@@ -52,20 +54,28 @@ class Member extends React.Component<Props, State> {
                         </Item.Description>
                     </Item.Content>
                 </Item>
-                <EditQuestionModal
-                    open={editing}
-                    question={question}
-                    onSave={this.onSave}
-                    onClose={this.onModalClose}
-                />
-                <ViewQuestionModal
-                    open={open}
-                    question={question}
-                    answers={answers}
-                    members={members}
-                    onClose={this.onModalClose}
-                    onEdit={this.onEdit}
-                />
+                {
+                    editing
+                        ? <EditQuestionModal
+                            open={editing}
+                            question={question}
+                            onSave={this.onSave}
+                            onClose={this.onModalClose}
+                        />
+                        : null
+                }
+                {
+                    open
+                        ? <ViewQuestionModal
+                            open={open}
+                            question={question}
+                            answers={answers}
+                            members={members}
+                            onClose={this.onModalClose}
+                            onEdit={this.onEdit}
+                        />
+                        : null
+                }
             </>
         )
     }

@@ -5,22 +5,22 @@ import Loading from 'components/Loading'
 
 type Props = {
     teamKey: string
-    members?: MemberModel[]
+    members: MemberModel[] | null
     addMember: (member: MemberModel) => Promise<void>
     saveMember: (member: MemberModel) => Promise<void>
 }
 
-class Members extends React.Component<Props> {
+class Members extends React.PureComponent<Props> {
     state = {members: undefined}
 
     public render() {
         const { teamKey, members } = this.props
-
-        if (members === undefined)
+        
+        if (members === null)
             return Loading('members')
 
         return <MembersComponent 
-            members={members || []} 
+            members={members} 
             teamKey={teamKey}
             onAddMember={this.addMember}
             onSaveMember={this.saveMember}/>

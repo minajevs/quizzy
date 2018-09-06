@@ -22,5 +22,14 @@
 label{
     font-weight: 700 !important;
     margin-top: 1em !important;
+    height: 22px !important;
     display: inline-block;
+}
+
+.select-icon{
+    cursor: pointer;
+}
+
+.select-icon:hover{
+    background-color: rgb(224, 225, 226) !important;
 }
