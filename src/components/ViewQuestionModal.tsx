@@ -35,7 +35,7 @@ class ViewQuestionModal extends React.Component<Props>{
                     <Modal.Content>
                         <ViewQuestion question={question} />
                         { results !== null
-                            ? <ResultsTable results={results}/>
+                            ? <ResultsTable results={results} units={question.unitsMeasure}/>
                             : null
                         }
                     </Modal.Content>

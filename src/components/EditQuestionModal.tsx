@@ -4,6 +4,7 @@ import QuestionModel, { UnitsMeasure} from 'models/question'
 
 import Validation from 'components/Validation'
 import UnitsInput from 'components/UnitsInput'
+import AnswerInput from 'components/AnswerInput'
 
 import { Button, Modal, Input, Form, TextArea, Message, Icon, Popup } from 'semantic-ui-react'
 
@@ -46,7 +47,7 @@ class EditQuestionModal extends React.Component<Props, State>{
                         </Form>
                         <Validation value={question.text} error="Question text can't be empty!" rule={this.notEmpty} validate={validate} />
                         <label>Answer</label>
-                        <Input onChange={this.handleChange('answer')} fluid defaultValue={question.answer} type='number' onKeyPress={this.onKeyPress('Enter', this.save)} />
+                        <AnswerInput onChange={this.handleAnswer} type={question.unitsMeasure} onKeyPress={this.onKeyPress('Enter', this.save)} />
                     </Modal.Content>
                     <Modal.Actions>
                         <Button onClick={onClose}>Cancel</Button>
@@ -63,6 +64,10 @@ class EditQuestionModal extends React.Component<Props, State>{
     private onKeyPress = (expectedKey: string, func: () => void) => (event: React.KeyboardEvent) => {
         if (event.key === expectedKey)
             func()
+    }
+
+    private handleAnswer = (value: number) => {
+        this.setState({ ...this.state, question: { ...this.state.question, answer: value } })
     }
 
     private handleChange = (field: keyof QuestionModel) => (event: React.ChangeEvent<HTMLInputElement>) => {

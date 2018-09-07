@@ -22,13 +22,6 @@ class UnitsInput extends React.Component<Props, State> {
     render() {
         return (
             <>
-            <label>Units:</label>
-            {this.input()}
-            </>
-        )
-
-        return (
-            <>
                 <label>Units:
                     {this.selectIcon('pencil', 'free')}
                     {this.selectIcon('clock', 'time')}
@@ -37,8 +30,7 @@ class UnitsInput extends React.Component<Props, State> {
                 </label>
                 {
                     this.input()
-                }
-                
+                }         
             </>
         )
     }

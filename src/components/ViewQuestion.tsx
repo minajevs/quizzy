@@ -1,6 +1,8 @@
 import * as React from 'react'
 
-import QuestionModel from 'models/question'
+import QuestionModel, {UnitsMeasure} from 'models/question'
+
+import * as moment from 'moment'
 
 import * as ReactMarkdown from 'react-markdown'
 
@@ -8,6 +10,25 @@ import { Container, Divider } from 'semantic-ui-react'
 
 type Props = {
     question: QuestionModel
+}
+
+const answer = (ans: number | null, units: UnitsMeasure) => {
+    if (ans === null || ans === undefined)
+        return null
+
+    let answerString = ''
+
+    switch (units) {
+        case 'free':
+            answerString = ans.toString()
+        case 'time':
+            answerString = moment(ans).format('HH:mm:ss.SSS')
+        case 'date':
+            answerString = moment(ans).format('DD:MM:YYYY')
+        case 'datetime':
+            answerString = moment(ans).format('DD-MM-YYYY HH:mm:ss.SSS')
+    }
+    return <div>Answer is: {answerString}</div>
 }
 
 class ViewQuestion extends React.Component<Props>{
@@ -29,7 +50,7 @@ class ViewQuestion extends React.Component<Props>{
                     ? <>
                         <label>Answer</label>
                         <Container>
-                            {question.answer} {question.units}
+                            {answer(question.answer, question.unitsMeasure)}
                         </Container>
                     </>
                     : null

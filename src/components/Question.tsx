@@ -2,7 +2,7 @@ import * as React from 'react'
 import * as moment from 'moment'
 
 import AnswerModel from 'models/answer'
-import QuestionModel from 'models/question'
+import QuestionModel, { UnitsMeasure } from 'models/question'
 import MemberModel from 'models/member'
 
 import { Grid, Label, Item, Image, Accordion, Button, Icon, Container } from 'semantic-ui-react'
@@ -21,10 +21,23 @@ type State = {
     open: boolean
 }
 
-const answer = (ans: number | null) => {
-    return ans !== null && ans !== undefined
-        ? <div>Answer is: {ans} </div>
-        : null
+const answer = (ans: number | null, units: UnitsMeasure) => {
+    if (ans === null || ans === undefined)
+        return null
+
+    let answerString = ''
+
+    switch (units) {
+        case 'free':
+            answerString = ans.toString()
+        case 'time':
+            answerString = moment(ans).format('HH:mm:ss.SSS')
+        case 'date':
+            answerString = moment(ans).format('DD-MM-YYYY')
+        case 'datetime':
+            answerString = moment(ans).format('DD-MM-YYYY HH:mm:ss.SSS')
+    }
+    return <div>Answer is: {answerString}</div>
 }
 
 const authorName = (members: MemberModel[], key: string) => (members.find(x => x.key === key) as MemberModel).name
@@ -49,7 +62,7 @@ class Member extends React.Component<Props, State> {
                         </Item.Meta>
                         <Item.Description>
                             <Container>
-                                {answer(question.answer)}
+                                {answer(question.answer, question.unitsMeasure)}
                             </Container>
                         </Item.Description>
                     </Item.Content>

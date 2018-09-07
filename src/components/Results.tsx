@@ -22,7 +22,7 @@ class Results extends React.Component<Props> {
           <Container>
             <ViewQuestion question={question} />
           </Container>
-          <ResultsTable results={results} />
+          <ResultsTable results={results} units={question.unitsMeasure} />
         </Segment>
       </Container>
     )

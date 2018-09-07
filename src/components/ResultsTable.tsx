@@ -3,14 +3,16 @@ import ResultModel from 'models/result'
 import ResultComponent from 'components/ResultRow'
 
 import { Table } from 'semantic-ui-react'
+import { UnitsMeasure } from 'models/question'
 
 type Props = {
+    units: UnitsMeasure
     results: ResultModel[]
 }
 
 class ResultsTable extends React.Component<Props> {
     public render() {
-        const { results } = this.props
+        const { results, units } = this.props
 
         return (
             <Table basic='very' celled collapsing>
@@ -23,7 +25,7 @@ class ResultsTable extends React.Component<Props> {
                 </Table.Header>
                 <Table.Body>
                     {results.map((result, index) =>
-                        <ResultComponent result={result} index={index} key={index} />
+                        <ResultComponent units={units} result={result} index={index} key={index} />
                     )}
                 </Table.Body>
             </Table>

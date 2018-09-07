@@ -72,7 +72,7 @@ class Answer extends React.Component<Props, State> {
         this.setState({ ...this.state, currentAnswer: { ...this.state.currentAnswer, [field]: event.target.value } })
     }
 
-    private onChange = (field: keyof AnswerModel) => (value: string) => {
+    private onChange = (field: keyof AnswerModel) => (value: number) => {
         this.setState({ ...this.state, currentAnswer: { ...this.state.currentAnswer, [field]: value } })
     }
 }
