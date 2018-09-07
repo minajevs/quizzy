@@ -1,7 +1,7 @@
 import * as React from 'react'
 import * as moment from 'moment'
 
-import QuestionModel from 'models/question'
+import QuestionModel, { UnitsMeasure } from 'models/question'
 import MemberModel from 'models/member'
 
 import Validation from 'components/Validation'
@@ -66,7 +66,7 @@ class AddMemberModal extends React.Component<Props, State>{
                             <Form.Group>
                                 <Form.Input label='Question' onChange={this.handleChange('text')} width='12' placeholder='How many beers is enough?' type='text' onKeyPress={this.onKeyPress('Enter', this.add)} /> 
                                 <Form.Field width='4'>
-                                    <UnitsInput onChange={this.handleChange('units')} onKeyPress={this.onKeyPress('Enter', this.add)}/>
+                                    <UnitsInput onChange={this.handleChange('units')} onTypeChange={this.handleTypeChange('unitsMeasure')} onKeyPress={this.onKeyPress('Enter', this.add)}/>
                                 </Form.Field>
                             </Form.Group>
                         </Form>
@@ -90,6 +90,10 @@ class AddMemberModal extends React.Component<Props, State>{
 
     private handleChange = (field: keyof QuestionModel) => (event: React.ChangeEvent<HTMLInputElement>) => {
         this.setState({ ...this.state, question: { ...this.state.question, [field]: event.target.value } })
+    }
+
+    private handleTypeChange = (field: keyof QuestionModel) => (units: UnitsMeasure) => {
+        this.setState({ ...this.state, question: { ...this.state.question, [field]: units } })
     }
 
     private handleTextAreaChange = (field: keyof QuestionModel) => (event: React.ChangeEvent<HTMLTextAreaElement>) => {

@@ -29,7 +29,7 @@ class Answers extends React.Component<Props> {
               {answers.map(answer =>
                 answer.author === question.author
                   ? null
-                  : <AnswerComponent answer={answer} members={members} units={question.units} key={answer.key} onAdd={onAddAnswer} />
+                  : <AnswerComponent type={question.unitsMeasure} answer={answer} members={members} units={question.units} key={answer.key} onAdd={onAddAnswer} />
               )}
             </List>
           </Segment>

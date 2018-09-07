@@ -1,8 +1,9 @@
 import * as React from 'react'
 
-import QuestionModel from 'models/question'
+import QuestionModel, { UnitsMeasure} from 'models/question'
 
-import Validation from './Validation'
+import Validation from 'components/Validation'
+import UnitsInput from 'components/UnitsInput'
 
 import { Button, Modal, Input, Form, TextArea, Message, Icon, Popup } from 'semantic-ui-react'
 
@@ -38,7 +39,9 @@ class EditQuestionModal extends React.Component<Props, State>{
                         <Form>
                             <Form.Group>
                                 <Form.Input label='Question' onChange={this.handleChange('text')} value={question.text} width='12' placeholder='How many beers is enough?' type='text' onKeyPress={this.onKeyPress('Enter', this.save)} /> 
-                                <Form.Input label='Units of measure' onChange={this.handleChange('units')} value={question.units} width='4' placeholder='beer(s)' type='text' onKeyPress={this.onKeyPress('Enter', this.save)} /> 
+                                <Form.Field width='4'>
+                                    <UnitsInput defaultValue={question.unitsMeasure} onChange={this.handleChange('units')} onTypeChange={this.handleTypeChange('unitsMeasure')} onKeyPress={this.onKeyPress('Enter', this.save)}/>
+                                </Form.Field>
                             </Form.Group>
                         </Form>
                         <Validation value={question.text} error="Question text can't be empty!" rule={this.notEmpty} validate={validate} />
@@ -64,6 +67,10 @@ class EditQuestionModal extends React.Component<Props, State>{
 
     private handleChange = (field: keyof QuestionModel) => (event: React.ChangeEvent<HTMLInputElement>) => {
         this.setState({ ...this.state, question: { ...this.state.question, [field]: event.target.value } })
+    }
+
+    private handleTypeChange = (field: keyof QuestionModel) => (units: UnitsMeasure) => {
+        this.setState({ ...this.state, question: { ...this.state.question, [field]: units } })
     }
 
     private handleTextAreaChange = (field: keyof QuestionModel) => (event: React.ChangeEvent<HTMLTextAreaElement>) => {

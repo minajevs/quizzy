@@ -3,9 +3,13 @@ import * as React from 'react'
 import AnswerModel from 'models/answer'
 import MemberModel from 'models/member'
 
+import AnswerInput from 'components/AnswerInput'
+
 import { Label, List, Container, Image, Input, Button } from 'semantic-ui-react'
+import { UnitsMeasure } from 'models/question'
 
 type Props = {
+    type: UnitsMeasure
     answer: AnswerModel
     members: MemberModel[]
     units: string
@@ -22,7 +26,7 @@ const authorName = (members: MemberModel[], key: string) => (members.find(x => x
 class Answer extends React.Component<Props, State> {
     state: State = { currentAnswer: { ...this.props.answer } }
     public render() {
-        const { answer, members, units } = this.props
+        const { answer, members, units, type } = this.props
         const { currentAnswer } = this.state
         return (
             <>
@@ -30,22 +34,20 @@ class Answer extends React.Component<Props, State> {
                     <List.Content>
                         <List.Description>
                             {!answered(answer)
-                                ? <Input
-                                    fluid
-                                    defaultValue={currentAnswer}
-                                    onChange={this.handleChange('answer')}
-                                    onKeyPress={this.onKeyPress('Enter', this.onSave)}
-                                    type='number'
-                                    labelPosition='right'
-                                > 
-                                    <Label size='large'>{authorName(members, answer.author)}</Label>
-                                    <input/>
-                                    { units !== '' && units !== undefined
-                                       ? <Label basic size='large'>{units}</Label>
-                                       : null
-                                    }
-                                    <Button color='teal' labelPosition='right' icon='check' content='Save' onClick={this.onSave} />
-                                </Input>
+                                ? <>
+                                    <AnswerInput
+                                        onChange={this.onChange('answer')}
+                                        onKeyPress={this.onKeyPress('Enter', this.onSave)}
+                                        type={type}
+                                        label={<Label size='large'>{authorName(members, answer.author)}</Label>}
+                                        button={<Button color='teal' labelPosition='right' icon='check' content='Save' onClick={this.onSave} />}
+                                    >
+                                        {units !== '' && units !== undefined
+                                            ? <Label basic size='large'>{units}</Label>
+                                            : null
+                                        }
+                                    </AnswerInput>
+                                </>
                                 : <Container text fluid>
                                     <Label color='green' size='large'>{authorName(members, answer.author)}</Label>  answered
                                 </Container>
@@ -58,9 +60,9 @@ class Answer extends React.Component<Props, State> {
     }
 
     private onKeyPress = (expectedKey: string, func: () => void) => (event: React.KeyboardEvent) => {
-        if(event.key === expectedKey)
-          func()
-      }
+        if (event.key === expectedKey)
+            func()
+    }
 
     private onSave = () => {
         this.props.onAdd(this.state.currentAnswer)
@@ -68,6 +70,10 @@ class Answer extends React.Component<Props, State> {
 
     private handleChange = (field: keyof AnswerModel) => (event: React.ChangeEvent<HTMLInputElement>) => {
         this.setState({ ...this.state, currentAnswer: { ...this.state.currentAnswer, [field]: event.target.value } })
+    }
+
+    private onChange = (field: keyof AnswerModel) => (value: string) => {
+        this.setState({ ...this.state, currentAnswer: { ...this.state.currentAnswer, [field]: value } })
     }
 }
 

@@ -33,3 +33,8 @@ label{
 .select-icon:hover{
     background-color: rgb(224, 225, 226) !important;
 }
+
+.middle-label{
+    height: 32px !important;
+    margin-top: 3px !important;
+}
