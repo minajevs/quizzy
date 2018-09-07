@@ -7,4 +7,5 @@ export default class Result{
     difference?: number
     points: number
     isAuthor: boolean
+    shouldAnswer: boolean
 }

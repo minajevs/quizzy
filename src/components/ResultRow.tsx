@@ -58,7 +58,7 @@ const answer = (ans: number, units: UnitsMeasure) => {
 const difference = (stamp: number, units: UnitsMeasure) => {
     switch (units) {
         case 'free':
-            return diff.toString()
+            return stamp.toString()
         case 'time': {
             if (diff(stamp, 'hours') > 0)
                 return diff(stamp, 'hours') + ' hour(s)'

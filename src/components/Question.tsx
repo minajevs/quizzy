@@ -30,12 +30,16 @@ const answer = (ans: number | null, units: UnitsMeasure) => {
     switch (units) {
         case 'free':
             answerString = ans.toString()
+            break
         case 'time':
             answerString = moment(ans).format('HH:mm:ss.SSS')
+            break
         case 'date':
             answerString = moment(ans).format('DD-MM-YYYY')
+            break
         case 'datetime':
             answerString = moment(ans).format('DD-MM-YYYY HH:mm:ss.SSS')
+            break
     }
     return <div>Answer is: {answerString}</div>
 }

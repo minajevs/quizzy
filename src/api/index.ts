@@ -215,6 +215,7 @@ export default class Api {
                 author: member.key,
                 question,
                 team,
+                shouldAnswer: true,
                 key: ''
             } as Answer
 

@@ -20,7 +20,7 @@ type State = {
     currentAnswer: AnswerModel
 }
 
-const answered = (answer: AnswerModel) => answer.answer !== undefined
+const showInput = (answer: AnswerModel) => (answer.answer === undefined || answer.answer === null) && answer.shouldAnswer
 const authorName = (members: MemberModel[], key: string) => (members.find(x => x.key === key) as MemberModel).name
 
 class Answer extends React.Component<Props, State> {
@@ -33,14 +33,19 @@ class Answer extends React.Component<Props, State> {
                 <List.Item>
                     <List.Content>
                         <List.Description>
-                            {!answered(answer)
+                            {showInput(answer)
                                 ? <>
                                     <AnswerInput
                                         onChange={this.onChange('answer')}
                                         onKeyPress={this.onKeyPress('Enter', this.onSave)}
                                         type={type}
                                         label={<Label size='large'>{authorName(members, answer.author)}</Label>}
-                                        button={<Button color='teal' labelPosition='right' icon='check' content='Save' onClick={this.onSave} />}
+                                        button={
+                                            <Button.Group>
+                                                <Button content='Exclude' onClick={this.onExclude} />
+                                                <Button.Or text='or' />
+                                                <Button color='teal' labelPosition='right' icon='check' content='Save' onClick={this.onSave} />
+                                            </Button.Group>}
                                     >
                                         {units !== '' && units !== undefined
                                             ? <Label basic size='large'>{units}</Label>
@@ -48,8 +53,12 @@ class Answer extends React.Component<Props, State> {
                                         }
                                     </AnswerInput>
                                 </>
-                                : <Container text fluid>
-                                    <Label color='green' size='large'>{authorName(members, answer.author)}</Label>  answered
+                                : answer.shouldAnswer
+                                    ? <Container text fluid>
+                                        <Label color='green' size='large'>{authorName(members, answer.author)}</Label>  answered
+                                </Container>
+                                    : <Container text fluid>
+                                        <Label color='grey' size='large'>{authorName(members, answer.author)}</Label>  will not answer today
                                 </Container>
                             }
                         </List.Description>
@@ -62,6 +71,10 @@ class Answer extends React.Component<Props, State> {
     private onKeyPress = (expectedKey: string, func: () => void) => (event: React.KeyboardEvent) => {
         if (event.key === expectedKey)
             func()
+    }
+
+    private onExclude = () => {
+        this.props.onAdd({ ...this.state.currentAnswer, shouldAnswer: false })
     }
 
     private onSave = () => {

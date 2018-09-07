@@ -127,10 +127,13 @@ class AnswerInputModal extends React.Component<Props, State>{
         switch (this.props.type) {
             case 'time':
                 this.setState({ open: true, hh: '00', mm: '00', ss: '00', ms: '000' })
+                break
             case 'date':
                 this.setState({ open: true, DD: '01', MM: '01', YYYY: '2018' })
+                break
             case 'datetime':
                 this.setState({ open: true, hh: '00', mm: '00', ss: '00', ms: '000', DD: '01', MM: '01', YYYY: '2018' })
+                break
         }
     }
 

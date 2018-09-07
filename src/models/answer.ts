@@ -4,4 +4,5 @@ export default class Answer{
     question: string
     author: string
     answer: number | null
+    shouldAnswer: boolean
 }
