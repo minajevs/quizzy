@@ -78,6 +78,7 @@ class Answer extends React.Component<Props, State> {
     }
 
     private onSave = () => {
+        console.log(this.state.currentAnswer)
         this.props.onAdd(this.state.currentAnswer)
     }
 

@@ -62,7 +62,7 @@ class AnswerInputModal extends React.Component<Props, State>{
                     <>
                         <Form>
                             <Form.Group>
-                                <Form.Input label='Hours' width='4' type='number' onChange={this.numberChange('hh', 0, 24)} value={hh} />
+                                <Form.Input label='Hours' width='4' type='number' onChange={this.numberChange('hh', 0, 99)} value={hh} />
                                 <Form.Input label='Minutes' width='4' type='number' onChange={this.numberChange('mm', 0, 59)} value={mm} />
                                 <Form.Input label='Seconds' width='4' type='number' onChange={this.numberChange('ss', 0, 59)} value={ss} />
                                 <Form.Input label='Milliseconds' width='4' type='number' onChange={this.numberChange('ms', 0, 999, '000')} value={ms} />
@@ -92,7 +92,7 @@ class AnswerInputModal extends React.Component<Props, State>{
                                 <Form.Input label='Year' width='4' type='number' onChange={this.numberChange('YYYY', 0, 9999, '0000')} value={YYYY} />
                             </Form.Group>
                             <Form.Group>
-                                <Form.Input label='Hours' width='4' type='number' onChange={this.numberChange('hh', 0, 24)} value={hh} />
+                                <Form.Input label='Hours' width='4' type='number' onChange={this.numberChange('hh', 0, 99)} value={hh} />
                                 <Form.Input label='Minutes' width='4' type='number' onChange={this.numberChange('mm', 0, 59)} value={mm} />
                                 <Form.Input label='Seconds' width='4' type='number' onChange={this.numberChange('ss', 0, 59)} value={ss} />
                                 <Form.Input label='Milliseconds' width='4' type='number' onChange={this.numberChange('ms', 0, 999, '000')} value={ms} />
@@ -174,9 +174,50 @@ class AnswerInputModal extends React.Component<Props, State>{
     private onChange = (newState: State) => {
         const { hh, mm, ss, ms, DD, MM, YYYY } = newState
 
-        const stamp = moment(`${DD}-${MM}-${YYYY} ${hh}:${mm}:${ss}.${ms}`, 'DD-MM-YYYY HH:mm:ss:SSS').valueOf()
+        switch (this.props.type) {
+            case 'time': {
+                if (hh === undefined || mm === undefined || ss === undefined || ms === undefined)
+                    return ''
 
-        this.props.onChange(stamp)
+                this.props.onChange(moment(0)
+                    .add(hh, 'hours')
+                    .add(mm, 'minutes')
+                    .add(ss, 'seconds')
+                    .add(ms, 'milliseconds')
+                    .valueOf()
+                )
+                return
+            }
+            case 'date': {
+                if (DD === undefined || MM === undefined || YYYY === undefined)
+                    return ''
+
+                this.props.onChange(moment(0)
+                    .add(DD, 'days')
+                    .add(MM, 'months')
+                    .add(YYYY, 'years')
+                    .valueOf()
+                )
+                return
+            }
+            case 'datetime': {
+                if (DD === undefined || MM === undefined || YYYY === undefined || hh === undefined || mm === undefined || ss === undefined || ms === undefined)
+                    return ''
+
+                this.props.onChange(moment(0)
+                    .add(hh, 'hours')
+                    .add(mm, 'minutes')
+                    .add(ss, 'seconds')
+                    .add(ms, 'milliseconds')
+                    .add(DD, 'days')
+                    .add(MM, 'months')
+                    .add(YYYY, 'years')
+                    .valueOf()
+                )
+                return
+            }
+            default: return
+        }
     }
 }
 

@@ -196,7 +196,7 @@ export default class Api {
     saveAnswer = async (question: string, answer: Answer) => {
         if (this.database === undefined)
             throw new Error('Please, init API first byt calling .init()!')
-
+        
         const result = await this.database.ref(`answers/${answer.team}/${question}/${answer.key}`).set(answer)
     }
 
