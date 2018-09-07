@@ -78,6 +78,7 @@ class Answer extends React.Component<Props, State> {
     }
 
     private onSave = () => {
+        console.log(this.state.currentAnswer)
         this.props.onAdd(this.state.currentAnswer)
     }
 
@@ -86,6 +87,7 @@ class Answer extends React.Component<Props, State> {
     }
 
     private onChange = (field: keyof AnswerModel) => (value: number) => {
+        console.log(value)
         this.setState({ ...this.state, currentAnswer: { ...this.state.currentAnswer, [field]: value } })
     }
 }

@@ -8,16 +8,16 @@ const getResults = (question: Question, answers: Answer[], members: Member[]) =>
         const member = members.find(x => x.key === answer.author) || { name: `ERR: Can't find member with id` } as Member
         
         if(!answer.shouldAnswer)
-        return {member, score: 0, points: 0, isAuthor: false, shouldAnswer: false}
+            return {member, score: 0, points: 0, isAuthor: false, shouldAnswer: false}
 
         if(answer.answer === null || answer.answer === undefined)
-            return {member, score: -1, points: 0, isAuthor: false, shouldAnswer: false}
+            return {member, score: -1, points: 0, isAuthor: false, shouldAnswer: true}
         
         const realAnswer = question.answer as number
 
         const difference = Math.abs(realAnswer-answer.answer)
 
-        return {member, difference, points: 0, answer: answer.answer, isAuthor: false, shouldAnswer: false}
+        return {member, difference, points: 0, answer: answer.answer, isAuthor: false, shouldAnswer: true}
     })
 
     const sortedResults = results.sort((a,b) => {
