@@ -32,7 +32,7 @@ class Members extends React.Component<Props> {
     )
   }
 
-  private sortByRating = (a: MemberModel, b: MemberModel) => a.points > b.points ? 0 : 1
+  private sortByRating = (a: MemberModel, b: MemberModel) => b.points - a.points
   private sortByName = (a: MemberModel, b: MemberModel) => a.name > b.name ? 0 : 1
 }
 

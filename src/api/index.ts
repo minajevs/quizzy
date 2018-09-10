@@ -82,7 +82,6 @@ export default class Api {
             this.state.latestQuestion = latest
             if (latest === null || latest === undefined) return
 
-            await this.createEmptyAnswers(teamKey, latest.key)
             this.emitter.emit('latestQuestion', this.state.latestQuestion)
             this.loadAndBind(`answers/${teamKey}/${latest.key}`, 'answers', this.firebaseArrayBinder)
         })
@@ -147,6 +146,8 @@ export default class Api {
 
         if (result.key === null)
             return
+
+        return this.createEmptyAnswers(question.team, result.key)
     }
 
     saveQuestion = async (question: Question) => {
@@ -155,15 +156,13 @@ export default class Api {
 
         if (this.state.answers === null)
             throw new Error('Ups! That should not happen!')
-
+            
         const questionToUpdate = this.state.questions.find(x => x.key === question.key)
 
         if (questionToUpdate !== undefined) {
             // update stuff
-
             // if answer was already existing, then we should remove old score before adding new ones 
             if (questionToUpdate.answer !== null && questionToUpdate.answer !== undefined) {
-                console.log(questionToUpdate)
                 // get scores for previous answer
                 const previousResult = getResults(questionToUpdate, this.state.answers, this.state.members)
                 const promises = []

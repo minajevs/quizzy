@@ -48,7 +48,7 @@ const answer = (ans: number, units: UnitsMeasure) => {
         case 'free':
             return ans.toString()
         case 'time':
-            return moment(ans).format('HH:mm:ss.SSS')
+            return `${diff(ans, 'hours')}:${moment(ans).format('mm:ss.SSS')}`
         case 'date':
             return moment(ans).format('DD-MM-YYYY')
         case 'datetime':

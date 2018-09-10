@@ -21,7 +21,7 @@ type State = {
     open: boolean
 }
 
-const answer = (ans: number | null, units: UnitsMeasure) => {
+const answer = (ans: number | null, units: UnitsMeasure, unitsString: string) => {
     if (ans === null || ans === undefined)
         return null
 
@@ -32,7 +32,7 @@ const answer = (ans: number | null, units: UnitsMeasure) => {
             answerString = ans.toString()
             break
         case 'time':
-            answerString = moment(ans).format('HH:mm:ss.SSS')
+            answerString = `${diff(ans, 'hours')}:${moment(ans).format('mm:ss.SSS')}`
             break
         case 'date':
             answerString = moment(ans).format('DD-MM-YYYY')
@@ -41,8 +41,10 @@ const answer = (ans: number | null, units: UnitsMeasure) => {
             answerString = moment(ans).format('DD-MM-YYYY HH:mm:ss.SSS')
             break
     }
-    return <div>Answer is: {answerString}</div>
+    return <div>Answer is: {answerString} {unitsString}</div>
 }
+
+const diff = (stamp: number, unitOfTime: moment.unitOfTime.Diff) => moment(stamp).diff(moment(0), unitOfTime, false)
 
 const authorName = (members: MemberModel[], key: string) => (members.find(x => x.key === key) as MemberModel).name
 
@@ -66,7 +68,7 @@ class Member extends React.Component<Props, State> {
                         </Item.Meta>
                         <Item.Description>
                             <Container>
-                                {answer(question.answer, question.unitsMeasure)}
+                                {answer(question.answer, question.unitsMeasure, question.units)}
                             </Container>
                         </Item.Description>
                     </Item.Content>

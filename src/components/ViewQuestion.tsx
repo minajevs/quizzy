@@ -23,7 +23,7 @@ const answer = (ans: number | null, units: UnitsMeasure) => {
             answerString = ans.toString()
             break
         case 'time':
-            answerString = moment(ans).format('HH:mm:ss.SSS')
+            answerString = `${diff(ans, 'hours')}:${moment(ans).format('mm:ss.SSS')}`
             break
         case 'date':
             answerString = moment(ans).format('DD:MM:YYYY')
@@ -32,18 +32,21 @@ const answer = (ans: number | null, units: UnitsMeasure) => {
             answerString = moment(ans).format('DD-MM-YYYY HH:mm:ss.SSS')
             break
     }
-    return <div>Answer is: {answerString}</div>
+    return answerString
 }
+
+const diff = (stamp: number, unitOfTime: moment.unitOfTime.Diff) => moment(stamp).diff(moment(0), unitOfTime, false)
 
 class ViewQuestion extends React.Component<Props>{
     render() {
         const { question } = this.props
+        console.log(question)
         return (
             <>
                 <Container>
                     <ReactMarkdown className='markdown' source={question.description} />
                 </Container>
-                {question.description !== '' && question.description !== undefined
+                {question.description !== '' && question.description !== undefined && question.description !== ``
                     ? <Divider />
                     : null
                 }
@@ -54,7 +57,7 @@ class ViewQuestion extends React.Component<Props>{
                     ? <>
                         <label>Answer</label>
                         <Container>
-                            {answer(question.answer, question.unitsMeasure)}
+                            {answer(question.answer, question.unitsMeasure)} {question.units !== undefined ? question.units : ''}
                         </Container>
                     </>
                     : null

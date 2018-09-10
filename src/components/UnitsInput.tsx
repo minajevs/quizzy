@@ -8,6 +8,7 @@ import { Form, Icon, SemanticICONS, Dropdown, Container, Label } from 'semantic-
 
 type Props = {
     defaultValue?: UnitsMeasure
+    defaultUnits?: string
     onChange: (e: React.SyntheticEvent<HTMLInputElement>) => void
     onTypeChange: (type: UnitsMeasure) => void
     onKeyPress: (event: React.KeyboardEvent<Element>) => void
@@ -55,6 +56,7 @@ class UnitsInput extends React.Component<Props, State> {
             case 'free':
                 return <Form.Input 
                     onChange={this.props.onChange} 
+                    defaultValue={this.props.defaultUnits}
                     placeholder='beer(s)' 
                     type='text' 
                     onKeyPress={onKeyPress} 

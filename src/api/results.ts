@@ -24,7 +24,7 @@ const getResults = (question: Question, answers: Answer[], members: Member[]) =>
         if(a.difference === undefined) return 1
         if(b.difference === undefined) return -1
 
-        return a.difference > b.difference ? 1 : 0
+        return a.difference - b.difference
     })
 
     for(let i = sortedResults.length; i > 0; i--){

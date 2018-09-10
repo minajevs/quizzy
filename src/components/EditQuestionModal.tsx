@@ -41,13 +41,13 @@ class EditQuestionModal extends React.Component<Props, State>{
                             <Form.Group>
                                 <Form.Input label='Question' onChange={this.handleChange('text')} value={question.text} width='12' placeholder='How many beers is enough?' type='text' onKeyPress={this.onKeyPress('Enter', this.save)} /> 
                                 <Form.Field width='4'>
-                                    <UnitsInput defaultValue={question.unitsMeasure} onChange={this.handleChange('units')} onTypeChange={this.handleTypeChange('unitsMeasure')} onKeyPress={this.onKeyPress('Enter', this.save)}/>
+                                    <UnitsInput defaultUnits={question.units} defaultValue={question.unitsMeasure} onChange={this.handleChange('units')} onTypeChange={this.handleTypeChange('unitsMeasure')} onKeyPress={this.onKeyPress('Enter', this.save)}/>
                                 </Form.Field>
                             </Form.Group>
                         </Form>
                         <Validation value={question.text} error="Question text can't be empty!" rule={this.notEmpty} validate={validate} />
                         <label>Answer</label>
-                        <AnswerInput onChange={this.handleAnswer} type={question.unitsMeasure} onKeyPress={this.onKeyPress('Enter', this.save)} />
+                        <AnswerInput defaultValue={question.answer || undefined} onChange={this.handleAnswer} type={question.unitsMeasure} onKeyPress={this.onKeyPress('Enter', this.save)} />
                     </Modal.Content>
                     <Modal.Actions>
                         <Button onClick={onClose}>Cancel</Button>
