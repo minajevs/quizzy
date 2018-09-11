@@ -52,7 +52,7 @@ class AddMemberModal extends React.Component<Props, State>{
                     Add Question
                 </Button>
                 <Divider />
-                <Modal open={this.state.open}>
+                <Modal open={this.state.open} onClose={this.cancel}>
                     <Modal.Header>New question</Modal.Header>
                     <Modal.Content>
                         <label>Author</label>

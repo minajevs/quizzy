@@ -26,13 +26,11 @@ class ViewQuestionModal extends React.Component<Props>{
         const { open, onClose, onEdit, question, answers, members } = this.props
         let results = null
         if (question.answer !== null && question.answer !== undefined) {
-            console.log({...members}, {...answers})
             results = getResults(question, answers, members)
-            console.log(results)
         }
         return (
             <>
-                <Modal open={open}>
+                <Modal open={open} onClose={onClose}>
                     <Modal.Header>View question</Modal.Header>
                     <Modal.Content>
                         <ViewQuestion question={question} />

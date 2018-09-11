@@ -2,7 +2,7 @@ import * as React from 'react'
 
 import QuestionModel from 'models/question'
 import MemberModel from 'models/member'
-import AnswerModel from 'models/answer'
+import AnswersModel from 'models/answers'
 
 import QuestionsComponent from 'components/Questions'
 import Loading from 'components/Loading'
@@ -10,7 +10,7 @@ import Loading from 'components/Loading'
 type Props = {
     teamKey: string
     members: MemberModel[] | null
-    answers: AnswerModel[] | null
+    answers: AnswersModel[] | null
     questions: QuestionModel[] | null
     addQuestion: (question: QuestionModel) => Promise<void>
     saveQuestion: (question: QuestionModel) => Promise<void>

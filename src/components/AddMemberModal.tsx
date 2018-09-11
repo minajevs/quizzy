@@ -30,7 +30,7 @@ class AddMemberModal extends React.Component<Props, State>{
                     <Icon name='add circle' />
                     Add member
                 </Button>
-                <Modal open={this.state.open}>
+                <Modal open={this.state.open} onClose={this.cancel}>
                     <Modal.Header>New member</Modal.Header>
                     <Modal.Content>
                         <label>Member name</label>

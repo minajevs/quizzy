@@ -1,5 +1,7 @@
 import * as React from 'react'
 
+import { getQuestionAnswers } from 'api/helpers'
+import AnswersModel from 'models/answers'
 import AnswerModel from 'models/answer'
 import QuestionModel from 'models/question'
 import MemberModel from 'models/member'
@@ -13,7 +15,7 @@ import getResults from 'api/results'
 import { Container, Segment } from 'semantic-ui-react'
 
 type Props = {
-    answers: AnswerModel[] | null
+    answers: AnswersModel[] | null
     members: MemberModel[] | null
     latestQuestion: QuestionModel | null
     addAnswer: (question: string, answer: AnswerModel) => Promise<void>
@@ -38,8 +40,10 @@ class Answers extends React.Component<Props> {
         if (members === null)
             return Loading('members')
 
+        const latestAnswers = getQuestionAnswers(latestQuestion.key, answers)
+
         if (latestQuestion.answer !== null && latestQuestion.answer !== undefined) {
-            const results = getResults(latestQuestion, answers, members)
+            const results = getResults(latestQuestion, latestAnswers.answers, members)
             return <ResultsComponent
                 question={latestQuestion}
                 results={results.filter(result => !result.isAuthor)}
@@ -48,7 +52,7 @@ class Answers extends React.Component<Props> {
 
         return <AnswersComponent
             question={latestQuestion}
-            answers={answers}
+            answers={latestAnswers.answers}
             members={members}
             onAddAnswer={this.addAnswer}
         />

@@ -40,7 +40,6 @@ const diff = (stamp: number, unitOfTime: moment.unitOfTime.Diff) => moment(stamp
 class ViewQuestion extends React.Component<Props>{
     render() {
         const { question } = this.props
-        console.log(question)
         return (
             <>
                 <Container>

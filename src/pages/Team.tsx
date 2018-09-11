@@ -1,5 +1,6 @@
 import * as React from 'react'
 import Api from 'api'
+import { getLatestQuestion, getQuestionAnswers } from 'api/helpers'
 import TeamContainer from 'containers/Team'
 import MembersContainer from 'containers/Members'
 import AnswersContainer from 'containers/Answers'
@@ -9,6 +10,7 @@ import { RouteComponentProps, withRouter } from 'react-router'
 import TeamModel from 'models/team'
 import MemberModel from 'models/member'
 import QuestionModel from 'models/question'
+import AnswersModel from 'models/answers'
 import AnswerModel from 'models/answer'
 
 type Props = {} & RouteComponentProps<{}>
@@ -18,8 +20,9 @@ type State = {
   team: TeamModel | null
   members: MemberModel[] | null
   questions: QuestionModel[] | null
-  answers: AnswerModel[] | null
+  answers: AnswersModel[] | null
   latestQuestion: QuestionModel | null
+  latestAnswers: AnswerModel[] | null
 }
 
 class Team extends React.PureComponent<Props, State> {
@@ -32,7 +35,8 @@ class Team extends React.PureComponent<Props, State> {
       members: null,
       questions: null,
       answers: null,
-      latestQuestion: null
+      latestQuestion: null,
+      latestAnswers: null
     }
     this.loadData()
   }
@@ -42,9 +46,8 @@ class Team extends React.PureComponent<Props, State> {
   loadData = async () => {
     this.api.subscribe<TeamModel>('team', team => this.setState({ team }))
     this.api.subscribe<MemberModel[]>('members', members => this.setState({ members }))
-    this.api.subscribe<QuestionModel[]>('questions', questions => this.setState({ questions }))
-    this.api.subscribe<AnswerModel[]>('answers', answers => this.setState({ answers }))
-    this.api.subscribe<QuestionModel>('latestQuestion', latestQuestion => this.setState({ latestQuestion }))
+    this.api.subscribe<QuestionModel[]>('questions', questions => this.setState({ questions, latestQuestion: getLatestQuestion(questions) }))
+    this.api.subscribe<AnswersModel[]>('answers', answers => this.setState({ answers }))
 
     this.api.loadFor(this.props.match.params['key'])
   }

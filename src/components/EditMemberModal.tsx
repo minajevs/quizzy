@@ -25,7 +25,7 @@ class EditMemberModal extends React.Component<Props, State>{
         const { open, onClose, onSave } = this.props
         return (
             <>
-                <Modal open={open}>
+                <Modal open={open} onClose={onClose}>
                     <Modal.Header>Edit "{member.name}"</Modal.Header>
                     <Modal.Content>
                         <label>Member name</label>

@@ -5,9 +5,11 @@ import Team from 'models/team'
 import Member from 'models/member'
 import Question from 'models/question'
 import Answer from 'models/answer'
+import Answers from 'models/answers'
 import Result from 'models/result'
 
 import getResults from 'api/results'
+import {getLatestQuestion, getQuestionAnswers} from 'api/helpers'
 
 import * as moment from 'moment'
 import { EventEmitter } from 'events'
@@ -27,8 +29,7 @@ export default class Api {
         readonly team?: Team | null
         readonly members: Member[]
         readonly questions: Question[]
-        readonly answers: Answer[]
-        latestQuestion: Question | null
+        readonly answers: Answers[]
     }
 
 
@@ -56,7 +57,6 @@ export default class Api {
             questions: [],
             answers: [],
             members: [],
-            latestQuestion: null,
             team: null
         }
     }
@@ -67,55 +67,40 @@ export default class Api {
 
     loadFor = async (teamKey: string) => {
         await Promise.all([
-            this.loadAndBind(`teams/${teamKey}`, 'team'),
-            this.loadAndBind(`members/${teamKey}`, 'members', this.firebaseArrayBinder)
+            this.bind(`teams/${teamKey}`, 'team'),
+            this.bind(`members/${teamKey}`, 'members', this.firebaseArrayBinder),
+            this.bind(`questions/${teamKey}`, 'questions', this.firebaseArrayBinder),
+            this.bind(`answers/${teamKey}`, 'answers', this.answersBinder)
         ])
-
-        const questionRef = await this.loadAndBind(`questions/${teamKey}`, 'questions', this.firebaseArrayBinder)
-        this.state.latestQuestion = this.getLatestQuestion()
-        if (this.state.latestQuestion !== null && this.state.latestQuestion !== undefined)
-            await this.loadAndBind(`answers/${teamKey}/${this.state.latestQuestion.key}`, 'answers', this.firebaseArrayBinder)
-
-
-        questionRef.on('value', async snap => {
-            const latest = this.getLatestQuestion()
-            this.state.latestQuestion = latest
-            if (latest === null || latest === undefined) return
-
-            this.emitter.emit('latestQuestion', this.state.latestQuestion)
-            this.loadAndBind(`answers/${teamKey}/${latest.key}`, 'answers', this.firebaseArrayBinder)
-        })
-
-        console.log('finished loading and binding stuff', this.state)
+     
+        console.log('finished binding stuff')
         return this.state
     }
 
-    private loadAndBind = async (
+    private bind = async (
         path: string,
         item: keyof Api['state'],
         customBinder: (snap: firebase.database.DataSnapshot | null) => any = (snap) => snap !== null ? snap.val() : null
-    ): Promise<firebase.database.Reference> => {
-        const ref = this.database.ref(path)
-        this.state = { ...this.state, [item]: customBinder(await ref.once('value')) }
-
-        ref.on('value', snap => {
+    ) => {
+        console.log(`b: ${item}`)
+        this.database.ref(path).on('value', snap => {
             this.state = { ...this.state, [item]: customBinder(snap) }
             this.emitter.emit(item, this.state[item])
         })
-
-        return ref
     }
 
     private firebaseArrayBinder = (snap: firebase.database.DataSnapshot | null) => snap !== null
-        ? Object.keys(snap.val() || {}).map(k => ({ ...snap.val()[k], key: k }))
+        ? this.arrayBinder(snap.val())
         : null
 
-    private getLatestQuestion = (): Question | null => {
-        return this.state.questions !== null
-            ? this.state.questions
-                .sort((a, b) => moment(b.date).diff(moment(a.date)))[0]
-            : null
-    }
+    private arrayBinder = (obj: object) => Object.keys(obj || {}).map(k => ({ ...obj[k], key: k }))
+
+    private answersBinder = (snap: firebase.database.DataSnapshot | null) => snap !== null
+        ? Object.keys(snap.val() || {}).map(k => (
+            {   answers: this.arrayBinder(snap.val()[k]), 
+                questionKey: k 
+            } as Answers))
+        : null
 
     createTeam = async (team: Team): Promise<void> => {
         return this.create<Team>('teams', team)
@@ -164,7 +149,7 @@ export default class Api {
             // if answer was already existing, then we should remove old score before adding new ones 
             if (questionToUpdate.answer !== null && questionToUpdate.answer !== undefined) {
                 // get scores for previous answer
-                const previousResult = getResults(questionToUpdate, this.state.answers, this.state.members)
+                const previousResult = getResults(questionToUpdate, getQuestionAnswers(question.key, this.state.answers).answers, this.state.members)
                 const promises = []
 
                 // remove points from members
@@ -182,7 +167,7 @@ export default class Api {
 
         if (question.answer !== null && question.answer !== undefined) {
             // get scores for the new answer
-            const results = getResults(question, this.state.answers, this.state.members)
+            const results = getResults(question, getQuestionAnswers(question.key, this.state.answers).answers, this.state.members)
 
             // add points to members
             for (const res of results) {
@@ -206,7 +191,9 @@ export default class Api {
         const promises = []
 
         for (const member of this.state.members) {
-            if (this.state.answers.find(x => x.author === member.key && x.question === question) !== undefined)
+            const answers = getQuestionAnswers(question, this.state.answers).answers
+
+            if (answers.find(x => x.author === member.key && x.question === question) !== undefined)
                 continue
 
             const answer = {

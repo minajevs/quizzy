@@ -55,7 +55,7 @@ class AnswerInputModal extends React.Component<Props, State>{
                     {children}
                     {button}
                 </Input>
-                <Modal open={open}>
+                <Modal open={open} onClose={this.cancel}>
                     <Modal.Header>{ defaultValue !== undefined ? 'Add answer' : 'Edit answer' }</Modal.Header>
                     <Modal.Content>
                         {this.form()}
