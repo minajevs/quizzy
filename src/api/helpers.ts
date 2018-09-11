@@ -6,7 +6,7 @@ import * as moment from 'moment'
 
 export const getLatestQuestion = (questions: Question[]): Question | null => {
     return questions
-            .sort((a, b) => moment(b.date).diff(moment(a.date)))[0]
+            .sort((a, b) => moment(b.date).diff(moment(a.date)))[0] || null
 }
 
 export const getQuestionAnswers = (questionKey: string, answers: Answers[]): Answers => 

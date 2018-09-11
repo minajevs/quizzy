@@ -18,6 +18,7 @@ type Props = {} & RouteComponentProps<{}>
 type State = {
   loading: boolean
   team: TeamModel | null
+  teamNotFound: boolean
   members: MemberModel[] | null
   questions: QuestionModel[] | null
   answers: AnswersModel[] | null
@@ -32,6 +33,7 @@ class Team extends React.PureComponent<Props, State> {
     this.state = {
       loading: false,
       team: null,
+      teamNotFound: false,
       members: null,
       questions: null,
       answers: null,
@@ -44,7 +46,7 @@ class Team extends React.PureComponent<Props, State> {
   private api: Api = Api.getInstance()
 
   loadData = async () => {
-    this.api.subscribe<TeamModel>('team', team => this.setState({ team }))
+    this.api.subscribe<TeamModel>('team', team => this.setState({ team, teamNotFound: team === null }))
     this.api.subscribe<MemberModel[]>('members', members => this.setState({ members }))
     this.api.subscribe<QuestionModel[]>('questions', questions => this.setState({ questions, latestQuestion: getLatestQuestion(questions) }))
     this.api.subscribe<AnswersModel[]>('answers', answers => this.setState({ answers }))
@@ -54,11 +56,11 @@ class Team extends React.PureComponent<Props, State> {
 
   public render() {
     const { match } = this.props
-    const { loading, team, answers, members, questions, latestQuestion } = this.state
+    const { loading, team, teamNotFound, answers, members, questions, latestQuestion } = this.state
     const teamKey = match.params['key']
 
     return (
-      <TeamContainer team={team} loading={loading} teamKey={teamKey} onAddTeam={this.createTeam}>
+      <TeamContainer team={team} teamNotFound={teamNotFound} loading={loading} teamKey={teamKey} onAddTeam={this.createTeam}>
         <AnswersContainer
           answers={answers}
           members={members}

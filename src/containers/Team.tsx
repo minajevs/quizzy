@@ -7,6 +7,7 @@ import TeamNotFound from 'components/TeamNotFound'
 type Props = {
     loading: boolean
     team: TeamModel | null
+    teamNotFound: boolean
     onAddTeam: (teamKey: string, teamName: string) => void
     teamKey: string
     children: React.ReactNode
@@ -14,13 +15,13 @@ type Props = {
 
 class Team extends React.Component<Props> {
     public render() {
-        const { team, children, teamKey, onAddTeam, loading } = this.props
+        const { team, teamNotFound, children, teamKey, onAddTeam, loading } = this.props
+
+        if (teamNotFound)
+            return TeamNotFound(teamKey, onAddTeam)
 
         if (team === null)
             return Loading('team')
-
-        if (team === undefined)
-            return TeamNotFound(teamKey, onAddTeam)
 
         return <TeamComponent team={team} loading={loading}>
             {children}
