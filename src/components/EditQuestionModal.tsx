@@ -1,6 +1,6 @@
 import * as React from 'react'
 
-import QuestionModel, { UnitsMeasure} from 'models/question'
+import QuestionModel, { UnitsMeasure } from 'models/question'
 
 import Validation from 'components/Validation'
 import UnitsInput from 'components/UnitsInput'
@@ -20,74 +20,73 @@ type State = {
     validate: boolean
 }
 
-class EditQuestionModal extends React.Component<Props, State>{
-    state: State = {
-        question: this.props.question,
+const EditQuestionModal: React.FC<Props> = props => {
+    const [state, setState] = React.useState<State>({
+        question: props.question,
         validate: false
-    }
-    render() {
-        const { question, validate } = this.state
-        const { open, onClose, onSave } = this.props
-        return (
-            <>
-                <Modal open={open} onClose={onClose}>
-                    <Modal.Header>Edit question</Modal.Header>
-                    <Modal.Content>
-                        <label>Description <Popup trigger={<Icon name='exclamation circle' />} content='Markdown supported!' /></label>
-                        <Form>
-                            <TextArea autoHeight onChange={this.handleTextAreaChange('description')} value={question.description} placeholder='1 drink is too few and 3 drinks is too many.' />
-                        </Form>
-                        <Form>
-                            <Form.Group>
-                                <Form.Input label='Question' onChange={this.handleChange('text')} value={question.text} width='12' placeholder='How many beers is enough?' type='text' onKeyPress={this.onKeyPress('Enter', this.save)} /> 
-                                <Form.Field width='4'>
-                                    <UnitsInput defaultUnits={question.units} defaultValue={question.unitsMeasure} onChange={this.handleChange('units')} onTypeChange={this.handleTypeChange('unitsMeasure')} onKeyPress={this.onKeyPress('Enter', this.save)}/>
-                                </Form.Field>
-                            </Form.Group>
-                        </Form>
-                        <Validation value={question.text} error="Question text can't be empty!" rule={this.notEmpty} validate={validate} />
-                        <label>Answer</label>
-                        <AnswerInput defaultValue={question.answer || undefined} onChange={this.handleAnswer} type={question.unitsMeasure} onKeyPress={this.onKeyPress('Enter', this.save)} />
-                    </Modal.Content>
-                    <Modal.Actions>
-                        <Button onClick={onClose}>Cancel</Button>
-                        <Button negative disabled onClick={onClose} icon='delete' labelPosition='right' content='Remove' />
-                        <Button positive onClick={this.save} icon='save' labelPosition='right' content='Save' />
-                    </Modal.Actions>
-                </Modal>
-            </>
-        )
-    }
+    })
 
-    private notEmpty = (value: string) => value !== ''
+    const notEmpty = React.useCallback((value: string) => (value !== ''), [])
 
-    private onKeyPress = (expectedKey: string, func: () => void) => (event: React.KeyboardEvent) => {
+    const onKeyPress = React.useCallback((expectedKey: string, func: () => void) => (event: React.KeyboardEvent) => {
         if (event.key === expectedKey)
             func()
-    }
+    }, [])
 
-    private handleAnswer = (value: number) => {
-        this.setState({ ...this.state, question: { ...this.state.question, answer: value } })
-    }
+    const handleAnswer = React.useCallback((value: number) => {
+        setState(prev => ({ ...prev, question: { ...prev.question, answer: value } }))
+    }, [])
 
-    private handleChange = (field: keyof QuestionModel) => (event: React.ChangeEvent<HTMLInputElement>) => {
-        this.setState({ ...this.state, question: { ...this.state.question, [field]: event.target.value } })
-    }
+    const handleChange = React.useCallback((field: keyof QuestionModel) => (event: React.ChangeEvent<HTMLInputElement>) => {
+        event.persist()
+        setState(prev => ({ ...prev, question: { ...prev.question, [field]: event.target.value } }))
+    }, [])
 
-    private handleTypeChange = (field: keyof QuestionModel) => (units: UnitsMeasure) => {
-        this.setState({ ...this.state, question: { ...this.state.question, [field]: units } })
-    }
+    const handleTypeChange = React.useCallback((field: keyof QuestionModel) => (units: UnitsMeasure) => {
+        setState(prev => ({ ...prev, question: { ...prev.question, [field]: units } }))
+    }, [])
 
-    private handleTextAreaChange = (field: keyof QuestionModel) => (event: React.ChangeEvent<HTMLTextAreaElement>) => {
-        this.setState({ ...this.state, question: { ...this.state.question, [field]: event.target.value } })
-    }
+    const handleTextAreaChange = React.useCallback((field: keyof QuestionModel) => (event: React.ChangeEvent<HTMLTextAreaElement>) => {
+        event.persist()
+        setState(prev => ({ ...prev, question: { ...prev.question, [field]: event.target.value } }))
+    }, [])
 
-    private save = () => {
-        if (!this.notEmpty(this.state.question.text))
-            return this.setState({ validate: true })
+    const save = React.useCallback(() => {
+        if (!notEmpty(state.question.text))
+            return setState(prev => ({ ...prev, validate: true }))
 
-        this.props.onSave(this.state.question)
-    }
+        props.onSave(state.question)
+    }, [state.question, props.onSave])
+
+    return (
+        <>
+            <Modal open={props.open} onClose={props.onClose}>
+                <Modal.Header>Edit question</Modal.Header>
+                <Modal.Content>
+                    <label>Description <Popup trigger={<Icon name='exclamation circle' />} content='Markdown supported!' /></label>
+                    <Form>
+                        <TextArea autoHeight onChange={handleTextAreaChange('description')} value={state.question.description} placeholder='1 drink is too few and 3 drinks is too many.' />
+                    </Form>
+                    <Form>
+                        <Form.Group>
+                            <Form.Input label='Question' onChange={handleChange('text')} value={state.question.text} width='12' placeholder='How many beers is enough?' type='text' onKeyPress={onKeyPress('Enter', save)} />
+                            <Form.Field width='4'>
+                                <UnitsInput defaultUnits={state.question.units} defaultValue={state.question.unitsMeasure} onChange={handleChange('units')} onTypeChange={handleTypeChange('unitsMeasure')} onKeyPress={onKeyPress('Enter', save)} />
+                            </Form.Field>
+                        </Form.Group>
+                    </Form>
+                    <Validation value={state.question.text} error="Question text can't be empty!" rule={notEmpty} validate={state.validate} />
+                    <label>Answer</label>
+                    <AnswerInput defaultValue={state.question.answer || undefined} onChange={handleAnswer} type={state.question.unitsMeasure} onKeyPress={onKeyPress('Enter', save)} />
+                </Modal.Content>
+                <Modal.Actions>
+                    <Button onClick={props.onClose}>Cancel</Button>
+                    <Button negative disabled onClick={props.onClose} icon='delete' labelPosition='right' content='Remove' />
+                    <Button positive onClick={save} icon='save' labelPosition='right' content='Save' />
+                </Modal.Actions>
+            </Modal>
+        </>
+    )
 }
 
 export default EditQuestionModal

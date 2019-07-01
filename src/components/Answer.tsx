@@ -13,6 +13,7 @@ type Props = {
     answer: AnswerModel
     members: MemberModel[]
     units: string
+    answersClosed: boolean
     onAdd: (answer: AnswerModel) => void
 }
 
@@ -20,74 +21,92 @@ type State = {
     currentAnswer: AnswerModel
 }
 
-const showInput = (answer: AnswerModel) => (answer.answer === undefined || answer.answer === null) && answer.shouldAnswer
-const authorName = (members: MemberModel[], key: string) => (members.find(x => x.key === key) as MemberModel).name
 
-class Answer extends React.Component<Props, State> {
-    state: State = { currentAnswer: { ...this.props.answer } }
-    public render() {
-        const { answer, members, units, type } = this.props
-        const { currentAnswer } = this.state
-        return (
-            <>
-                <List.Item>
-                    <List.Content>
-                        <List.Description>
-                            {showInput(answer)
-                                ? <>
-                                    <AnswerInput
-                                        onChange={this.onChange('answer')}
-                                        onKeyPress={this.onKeyPress('Enter', this.onSave)}
-                                        type={type}
-                                        label={<Label size='large'>{authorName(members, answer.author)}</Label>}
-                                        button={
-                                            <Button.Group>
-                                                <Button content='Exclude' onClick={this.onExclude} />
-                                                <Button.Or text='or' />
-                                                <Button color='teal' labelPosition='right' icon='check' content='Save' onClick={this.onSave} />
-                                            </Button.Group>}
-                                    >
-                                        {units !== '' && units !== undefined
-                                            ? <Label basic size='large'>{units}</Label>
-                                            : null
-                                        }
-                                    </AnswerInput>
-                                </>
-                                : answer.shouldAnswer
-                                    ? <Container text fluid>
-                                        <Label color='green' size='large'>{authorName(members, answer.author)}</Label>  answered
-                                </Container>
-                                    : <Container text fluid>
-                                        <Label color='grey' size='large'>{authorName(members, answer.author)}</Label>  will not answer today
-                                </Container>
-                            }
-                        </List.Description>
-                    </List.Content>
-                </List.Item>
-            </>
-        )
-    }
+const authorName = (members: MemberModel[], key: string) => members.find(x => x.key === key)!.name
 
-    private onKeyPress = (expectedKey: string, func: () => void) => (event: React.KeyboardEvent) => {
+const Answer: React.FC<Props> = props => {
+    const [state, setState] = React.useState<State>({
+        currentAnswer: { ...props.answer }
+    })
+
+    const showInput = React.useMemo(() => ((props.answer.answer === undefined || props.answer.answer === null) && props.answer.shouldAnswer),
+        [props.answer])
+
+    const onKeyPress = React.useCallback((expectedKey: string, func: () => void) => (event: React.KeyboardEvent) => {
         if (event.key === expectedKey)
             func()
-    }
+    }, [])
 
-    private onExclude = () => {
-        this.props.onAdd({ ...this.state.currentAnswer, shouldAnswer: false })
-    }
+    const onExclude = React.useCallback(() => {
+        props.onAdd({ ...state.currentAnswer, shouldAnswer: false })
+    }, [props, state])
 
-    private onSave = () => {
-        this.props.onAdd(this.state.currentAnswer)
-    }
+    const onSave = React.useCallback(() => {
+        props.onAdd(state.currentAnswer)
+    }, [props, state])
 
-    private handleChange = (field: keyof AnswerModel) => (event: React.ChangeEvent<HTMLInputElement>) => {
-        this.setState({ ...this.state, currentAnswer: { ...this.state.currentAnswer, [field]: event.target.value } })
-    }
+    const handleChange = React.useCallback((field: keyof AnswerModel) => (event: React.ChangeEvent<HTMLInputElement>) => {
+        event.persist()
+        setState(prev => ({ ...prev, currentAnswer: { ...prev.currentAnswer, [field]: event.target.value } }))
+    }, [])
 
-    private onChange = (field: keyof AnswerModel) => (value: number) => {
-        this.setState({ ...this.state, currentAnswer: { ...this.state.currentAnswer, [field]: value } })
-    }
+    const onChange = React.useCallback((field: keyof AnswerModel) => (value: number) => {
+        setState(prev => ({ ...prev, currentAnswer: { ...prev.currentAnswer, [field]: value } }))
+    }, [])
+
+    const renderContent = React.useCallback(() => {
+        const { answer, members, units, type, answersClosed } = props
+        const { currentAnswer } = state
+
+        if (answersClosed)
+            return showInput
+                ? <Container text fluid>
+                    <Label color='red' size='large'>{authorName(members, answer.author)}</Label>  did not answer
+                    </Container>
+                : <Container text fluid>
+                    <Label color='green' size='large'>{authorName(members, answer.author)}</Label>  answered
+                    </Container>
+        else if (showInput)
+            return <>
+                <AnswerInput
+                    onChange={onChange('answer')}
+                    onKeyPress={onKeyPress('Enter', onSave)}
+                    type={type}
+                    label={<Label size='large'>{authorName(members, answer.author)}</Label>}
+                    button={
+                        <Button.Group>
+                            <Button content='Exclude' onClick={onExclude} />
+                            <Button.Or text='or' />
+                            <Button color='teal' labelPosition='right' icon='check' content='Save' onClick={onSave} />
+                        </Button.Group>}
+                >
+                    {units !== '' && units !== undefined
+                        ? <Label basic size='large'>{units}</Label>
+                        : null
+                    }
+                </AnswerInput>
+            </>
+        else
+            return answer.shouldAnswer
+                ? <Container text fluid>
+                    <Label color='green' size='large'>{authorName(members, answer.author)}</Label>  answered
+               </Container>
+                : <Container text fluid>
+                    <Label color='grey' size='large'>{authorName(members, answer.author)}</Label>  will not answer today
+               </Container>
+    }, [state, props])
+
+    return (
+        <>
+            <List.Item>
+                <List.Content>
+                    <List.Description>
+                        {renderContent()}
+                    </List.Description>
+                </List.Content>
+            </List.Item>
+        </>
+    )
 }
 
 export default Answer

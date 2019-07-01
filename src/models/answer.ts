@@ -3,6 +3,6 @@ export default class Answer{
     team: string
     question: string
     author: string
-    answer: number | null
+    answer: number | string | null
     shouldAnswer: boolean
 }

@@ -1,4 +1,4 @@
-export default class Question{
+export default class Question {
     key: string
     author: string
     text: string
@@ -10,4 +10,4 @@ export default class Question{
     team: string
 }
 
-export type UnitsMeasure = 'free' | 'time' | 'date' | 'datetime'
+export type UnitsMeasure = 'free' | 'manual'

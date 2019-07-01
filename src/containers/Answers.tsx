@@ -5,6 +5,7 @@ import AnswersModel from 'models/answers'
 import AnswerModel from 'models/answer'
 import QuestionModel from 'models/question'
 import MemberModel from 'models/member'
+import UserModel from 'models/user'
 
 import AnswersComponent from 'components/Answers'
 import ResultsComponent from 'components/Results'
@@ -17,13 +18,14 @@ import { Container, Segment } from 'semantic-ui-react'
 type Props = {
     answers: AnswersModel[] | null
     members: MemberModel[] | null
+    user: UserModel | null
     latestQuestion: QuestionModel | null
     addAnswer: (question: string, answer: AnswerModel) => Promise<void>
 }
 
 class Answers extends React.Component<Props> {
     public render() {
-        const { answers, members, latestQuestion } = this.props
+        const { answers, members, latestQuestion, user } = this.props
 
         if (latestQuestion === null)
             return (
@@ -40,6 +42,9 @@ class Answers extends React.Component<Props> {
         if (members === null)
             return Loading('members')
 
+        if (user === null)
+            return Loading('user')
+
         const latestAnswers = getQuestionAnswers(latestQuestion.key, answers)
 
         if (latestQuestion.answer !== null && latestQuestion.answer !== undefined) {
@@ -54,6 +59,7 @@ class Answers extends React.Component<Props> {
             question={latestQuestion}
             answers={latestAnswers.answers}
             members={members}
+            user={user}
             onAddAnswer={this.addAnswer}
         />
     }

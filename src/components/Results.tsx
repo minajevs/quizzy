@@ -12,21 +12,15 @@ type Props = {
   results: ResultModel[]
 }
 
-class Results extends React.Component<Props> {
-  public render() {
-    const { question, results } = this.props
-
-    return (
+const Results: React.FC<Props> = ({ question, results }) => (
+  <Container>
+    <Segment>
       <Container>
-        <Segment>
-          <Container>
-            <ViewQuestion question={question} />
-          </Container>
-          <ResultsTable results={results} units={question.unitsMeasure} />
-        </Segment>
+        <ViewQuestion question={question} />
       </Container>
-    )
-  }
-}
+      <ResultsTable results={results} units={question.unitsMeasure} />
+    </Segment>
+  </Container>
+)
 
 export default Results

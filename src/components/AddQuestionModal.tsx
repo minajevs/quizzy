@@ -26,8 +26,8 @@ const createDropDownOptions = (members: MemberModel[]): DropdownItemProps[] => m
     value: member.key
 }))
 
-class AddMemberModal extends React.Component<Props, State>{
-    state: State = {
+const AddMemberModal: React.FC<Props> = props => {
+    const [state, setState] = React.useState<State>({
         open: false,
         question: {
             key: '',
@@ -38,88 +38,82 @@ class AddMemberModal extends React.Component<Props, State>{
             description: '',
             units: '',
             unitsMeasure: 'free',
-            team: this.props.teamKey,    
+            team: props.teamKey,
         },
         validate: false
-    }
-    render() {
-        const { members } = this.props
-        const { validate } = this.state
-        return (
-            <>
-                <Button icon={true} labelPosition='left' onClick={this.show}>
-                    <Icon name='add circle' />
-                    Add Question
-                </Button>
-                <Divider />
-                <Modal open={this.state.open} onClose={this.cancel}>
-                    <Modal.Header>New question</Modal.Header>
-                    <Modal.Content>
-                        <label>Author</label>
-                        <Dropdown placeholder='John Doe' selection={true} options={createDropDownOptions(members)} onChange={this.handleDropdown} fluid />
-                        <Validation value={this.state.question.author} error='Please choose an author!' rule={this.notEmpty} validate={validate} />
-                        <label>Description <Popup trigger={<Icon name='exclamation circle' />} content='Markdown supported!' /></label>
-                        <Form>
-                            <TextArea onChange={this.handleTextAreaChange('description')} placeholder='1 drink is too few and 3 drinks is too many.' />
-                        </Form>
-                        <Form>
-                            <Form.Group>
-                                <Form.Input label='Question' onChange={this.handleChange('text')} width='12' placeholder='How many beers is enough?' type='text' onKeyPress={this.onKeyPress('Enter', this.add)} /> 
-                                <Form.Field width='4'>
-                                    <UnitsInput onChange={this.handleChange('units')} onTypeChange={this.handleTypeChange('unitsMeasure')} onKeyPress={this.onKeyPress('Enter', this.add)}/>
-                                </Form.Field>
-                            </Form.Group>
-                        </Form>
-                        <Validation value={this.state.question.text} error="Question can't be empty" rule={this.notEmpty} validate={validate} />
-                    </Modal.Content>
-                    <Modal.Actions>
-                        <Button negative onClick={this.cancel}>Cancel</Button>
-                        <Button positive onClick={this.add} icon='add' labelPosition='right' content='Add' />
-                    </Modal.Actions>
-                </Modal>
-            </>
-        )
-    }
+    })
 
-    private notEmpty = (value: string) => value !== ''
-
-    private onKeyPress = (expectedKey: string, func: () => void) => (event: React.KeyboardEvent) => {
+    const notEmpty = React.useCallback((value: string) => (value !== ''), [])
+    const onKeyPress = React.useCallback((expectedKey: string, func: () => void) => (event: React.KeyboardEvent) => {
         if (event.key === expectedKey)
             func()
-    }
+    }, [])
+    const handleChange = React.useCallback((field: keyof QuestionModel) => (event: React.ChangeEvent<HTMLInputElement>) => {
+        event.persist()
+        setState(prev => ({ ...prev, question: { ...prev.question, [field]: event.target.value } }))
+    }, [])
+    const handleTypeChange = React.useCallback((field: keyof QuestionModel) => (units: UnitsMeasure) => {
+        setState(prev => ({ ...prev, question: { ...prev.question, [field]: units } }))
+    }, [])
+    const handleTextAreaChange = React.useCallback((field: keyof QuestionModel) => (event: React.ChangeEvent<HTMLTextAreaElement>) => {
+        event.persist()
+        setState(prev => ({ ...prev, question: { ...prev.question, [field]: event.target.value } }))
+    }, [])
+    const handleDropdown = React.useCallback((event: React.SyntheticEvent<HTMLElement>, data: DropdownProps) => {
+        setState(prev => ({ ...prev, question: { ...prev.question, author: data.value as string } }))
+    }, [])
+    const show = React.useCallback(() => {
+        setState({ open: true, validate: false, question: { key: '', author: '', answer: null, date: new Date().getTime(), text: '', description: '', unitsMeasure: 'free', units: '', team: props.teamKey } })
+    }, [props])
+    const add = React.useCallback(() => {
+        const { question } = state
+        if (!notEmpty(question.author) || !notEmpty(question.text))
+            return setState(prev => ({ ...prev, validate: true }))
 
-    private handleChange = (field: keyof QuestionModel) => (event: React.ChangeEvent<HTMLInputElement>) => {
-        this.setState({ ...this.state, question: { ...this.state.question, [field]: event.target.value } })
-    }
+        props.onAdd(state.question)
+        cancel()
+    }, [state, props])
+    const cancel = React.useCallback(() => {
+        setState(prev => ({ ...prev, open: false, validate: false }))
+    }, [])
 
-    private handleTypeChange = (field: keyof QuestionModel) => (units: UnitsMeasure) => {
-        this.setState({ ...this.state, question: { ...this.state.question, [field]: units } })
-    }
+    const { members } = props
+    const { validate } = state
 
-    private handleTextAreaChange = (field: keyof QuestionModel) => (event: React.ChangeEvent<HTMLTextAreaElement>) => {
-        this.setState({ ...this.state, question: { ...this.state.question, [field]: event.target.value } })
-    }
- 
-    private handleDropdown = (event: React.SyntheticEvent<HTMLElement>, data: DropdownProps) => {
-        this.setState({ ...this.state, question: { ...this.state.question, author: data.value as string } })
-    }
-
-    private show = () => {
-        this.setState({ open: true, question: { key: '', author: '', answer: null, date: new Date().getTime(), text: '', description: '', unitsMeasure: 'free', units: '', team: this.props.teamKey } })
-    }
-
-    private add = () => {
-        const { question } = this.state
-        if (!this.notEmpty(question.author) || !this.notEmpty(question.text))
-            return this.setState({ validate: true })
-
-        this.props.onAdd(this.state.question)
-        this.cancel()
-    }
-
-    private cancel = () => {
-        this.setState({ open: false, validate: false })
-    }
+    return (
+        <>
+            <Button icon={true} labelPosition='left' onClick={show}>
+                <Icon name='add circle' />
+                Add Question
+                </Button>
+            <Divider />
+            <Modal open={state.open} onClose={cancel}>
+                <Modal.Header>New question</Modal.Header>
+                <Modal.Content>
+                    <label>Author</label>
+                    <Dropdown placeholder='John Doe' selection={true} options={createDropDownOptions(members)} onChange={handleDropdown} fluid />
+                    <Validation value={state.question.author} error='Please choose an author!' rule={notEmpty} validate={validate} />
+                    <label>Description <Popup trigger={<Icon name='exclamation circle' />} content='Markdown supported!' /></label>
+                    <Form>
+                        <TextArea onChange={handleTextAreaChange('description')} placeholder='1 drink is too few and 3 drinks is too many.' />
+                    </Form>
+                    <Form>
+                        <Form.Group>
+                            <Form.Input label='Question' onChange={handleChange('text')} width='12' placeholder='How many beers is enough?' type='text' onKeyPress={onKeyPress('Enter', add)} />
+                            <Form.Field width='4'>
+                                <UnitsInput onChange={handleChange('units')} onTypeChange={handleTypeChange('unitsMeasure')} onKeyPress={onKeyPress('Enter', add)} />
+                            </Form.Field>
+                        </Form.Group>
+                    </Form>
+                    <Validation value={state.question.text} error="Question can't be empty" rule={notEmpty} validate={validate} />
+                </Modal.Content>
+                <Modal.Actions>
+                    <Button negative onClick={cancel}>Cancel</Button>
+                    <Button positive onClick={add} icon='add' labelPosition='right' content='Add' />
+                </Modal.Actions>
+            </Modal>
+        </>
+    )
 }
 
 export default AddMemberModal

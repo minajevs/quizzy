@@ -25,100 +25,84 @@ const answer = (ans: number | null, units: UnitsMeasure, unitsString: string) =>
     if (ans === null || ans === undefined)
         return null
 
-    let answerString = ''
-
-    switch (units) {
-        case 'free':
-            answerString = ans.toString()
-            break
-        case 'time':
-            answerString = `${diff(ans, 'hours')}:${moment(ans).format('mm:ss.SSS')}`
-            break
-        case 'date':
-            answerString = moment(ans).format('DD-MM-YYYY')
-            break
-        case 'datetime':
-            answerString = moment(ans).format('DD-MM-YYYY HH:mm:ss.SSS')
-            break
-    }
-    return <div>Answer is: {answerString} {unitsString}</div>
+    return <div>Answer is: {ans.toString()} {unitsString}</div>
 }
 
 const diff = (stamp: number, unitOfTime: moment.unitOfTime.Diff) => moment(stamp).diff(moment(0), unitOfTime, false)
 
 const authorName = (members: MemberModel[], key: string) => (members.find(x => x.key === key) as MemberModel).name
 
-class Member extends React.Component<Props, State> {
-    state: State = { editing: false, open: false }
-    public render() {
-        const { question, answers, members } = this.props
-        const { editing, open } = this.state
-        return (
-            <>
-                <Item className='question-item' onClick={this.onOpen}>
-                    <Item.Image size='mini'>
-                        <Label>{moment(question.date).format('DD MMM')}</Label>
-                    </Item.Image>
+const Question: React.FC<Props> = props => {
+    const [state, setState] = React.useState<State>({ editing: false, open: false })
+
+    const { question, answers, members } = props
+    const { editing, open } = state
+
+    const onEdit = React.useCallback(() => {
+        setState(prev => ({ ...prev, open: false, editing: true }))
+    }, [])
+
+    const onOpen = React.useCallback(() => {
+        setState(prev => ({ ...prev, open: true }))
+    }, [])
+
+    const onModalClose = React.useCallback(() => {
+        setState(prev => ({ ...prev, editing: false, open: false }))
+    }, [])
+
+    const onSave = React.useCallback((quest: QuestionModel) => {
+        props.onSaveQuestion(quest)
+        setState(prev => ({ ...prev, editing: false }))
+    }, [props.onSaveQuestion])
+
+    const toggle = React.useCallback(() => {
+        setState(prev => ({ ...prev, open: !prev.open }))
+    }, [])
+
+    return (
+        <>
+            <Item className='question-item' onClick={onOpen}>
+                <Item.Image size='mini'>
+                    <Label>{moment(question.date).format('DD MMM')}</Label>
+                </Item.Image>
+                <Item.Content>
                     <Item.Content>
-                        <Item.Content>
-                            <Container text fluid>{question.text}</Container>
-                        </Item.Content>
-                        <Item.Meta>
-                            By {authorName(members, question.author)}
-                        </Item.Meta>
-                        <Item.Description>
-                            <Container>
-                                {answer(question.answer, question.unitsMeasure, question.units)}
-                            </Container>
-                        </Item.Description>
+                        <Container text fluid>{question.text}</Container>
                     </Item.Content>
-                </Item>
-                {
-                    editing
-                        ? <EditQuestionModal
-                            open={editing}
-                            question={question}
-                            onSave={this.onSave}
-                            onClose={this.onModalClose}
-                        />
-                        : null
-                }
-                {
-                    open
-                        ? <ViewQuestionModal
-                            open={open}
-                            question={question}
-                            answers={answers}
-                            members={members}
-                            onClose={this.onModalClose}
-                            onEdit={this.onEdit}
-                        />
-                        : null
-                }
-            </>
-        )
-    }
-
-    private onEdit = () => {
-        this.setState({ ...this.state, open: false, editing: true })
-    }
-
-    private onOpen = () => {
-        this.setState({ ...this.state, open: true })
-    }
-
-    private onModalClose = () => {
-        this.setState({ ...this.state, editing: false, open: false })
-    }
-
-    private onSave = (question: QuestionModel) => {
-        this.props.onSaveQuestion(question)
-        this.setState({ ...this.state, editing: false })
-    }
-
-    private toggle = () => {
-        this.setState({ ...this.state, open: !this.state.open })
-    }
+                    <Item.Meta>
+                        By {authorName(members, question.author)}
+                    </Item.Meta>
+                    <Item.Description>
+                        <Container>
+                            {answer(question.answer, question.unitsMeasure, question.units)}
+                        </Container>
+                    </Item.Description>
+                </Item.Content>
+            </Item>
+            {
+                editing
+                    ? <EditQuestionModal
+                        open={editing}
+                        question={question}
+                        onSave={onSave}
+                        onClose={onModalClose}
+                    />
+                    : null
+            }
+            {
+                open
+                    ? <ViewQuestionModal
+                        open={open}
+                        question={question}
+                        answers={answers}
+                        members={members}
+                        onClose={onModalClose}
+                        onEdit={onEdit}
+                    />
+                    : null
+            }
+        </>
+    )
 }
 
-export default Member
+export default Question
