@@ -5,6 +5,7 @@ import AnswersModel from 'models/answers'
 import AnswerModel from 'models/answer'
 import QuestionModel from 'models/question'
 import MemberModel from 'models/member'
+import UserModel from 'models/user'
 
 import AnswersComponent from 'components/Answers'
 import ResultsComponent from 'components/Results'
@@ -17,12 +18,13 @@ import { Container, Segment } from 'semantic-ui-react'
 type Props = {
     answers: AnswersModel[] | null
     members: MemberModel[] | null
+    user: UserModel | null
     latestQuestion: QuestionModel | null
     addAnswer: (question: string, answer: AnswerModel) => Promise<void>
 }
 
 const Answers: React.FC<Props> = props => {
-    const { answers, members, latestQuestion } = props
+    const { answers, members, latestQuestion, user } = props
 
     const addAnswer = React.useCallback(async (answer: AnswerModel) => {
         await props.addAnswer((props.latestQuestion as QuestionModel).key, answer)
@@ -39,6 +41,9 @@ const Answers: React.FC<Props> = props => {
 
     if (answers === null)
         return Loading('answers')
+
+    if (user === null)
+        return Loading('user')
 
     if (members === null)
         return Loading('members')
@@ -57,6 +62,7 @@ const Answers: React.FC<Props> = props => {
         question={latestQuestion}
         answers={latestAnswers.answers}
         members={members}
+        user={user}
         onAddAnswer={addAnswer}
     />
 }

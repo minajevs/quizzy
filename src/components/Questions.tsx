@@ -22,35 +22,31 @@ type Props = {
   onSaveQuestion: (question: QuestionModel) => void
 }
 
-class Questions extends React.Component<Props> {
-  public render() {
-    const { questions, teamKey, members, answers, onAddQuestion, onSaveQuestion } = this.props
-    return (
-      <Container>
-        <Segment>
-          <AddQuestionModal
-            teamKey={teamKey}
-            onAdd={onAddQuestion}
-            members={members}
-          />
-          <Item.Group divided={true}>
-            {questions
-              .sort(this.sortByDate)
-              .map((question, index) =>
-                (<QuestionComponent
-                  question={question}
-                  answers={getQuestionAnswers(question.key, answers).answers}
-                  members={members}
-                  key={index}
-                  onSaveQuestion={onSaveQuestion} />)
-              )}
-          </Item.Group>
-        </Segment>
-      </Container>
-    )
-  }
 
-  private sortByDate = (a: QuestionModel, b: QuestionModel) => moment(b.date).diff(moment(a.date))
-}
+const sortByDate = (a: QuestionModel, b: QuestionModel) => moment(b.date).diff(moment(a.date))
+
+const Questions: React.FC<Props> = ({ questions, teamKey, members, answers, onAddQuestion, onSaveQuestion }) => (
+  <Container>
+    <Segment>
+      <AddQuestionModal
+        teamKey={teamKey}
+        onAdd={onAddQuestion}
+        members={members}
+      />
+      <Item.Group divided={true}>
+        {questions
+          .sort(sortByDate)
+          .map((question, index) =>
+            (<QuestionComponent
+              question={question}
+              answers={getQuestionAnswers(question.key, answers).answers}
+              members={members}
+              key={index}
+              onSaveQuestion={onSaveQuestion} />)
+          )}
+      </Item.Group>
+    </Segment>
+  </Container>
+)
 
 export default Questions

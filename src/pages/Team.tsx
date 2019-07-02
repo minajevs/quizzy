@@ -7,6 +7,7 @@ import AnswersContainer from 'containers/Answers'
 import QuestionContainer from 'containers/Questions'
 import { RouteComponentProps, withRouter } from 'react-router'
 
+import UserModel from 'models/user'
 import TeamModel from 'models/team'
 import MemberModel from 'models/member'
 import QuestionModel from 'models/question'
@@ -20,6 +21,8 @@ type State = {
   team: TeamModel | null
   teamNotFound: boolean
   members: MemberModel[] | null
+  users: UserModel[] | null
+  user: UserModel | null
   questions: QuestionModel[] | null
   answers: AnswersModel[] | null
   latestQuestion: QuestionModel | null
@@ -35,28 +38,76 @@ class Team extends React.PureComponent<Props, State> {
       team: null,
       teamNotFound: false,
       members: null,
+      users: null,
+      user: null,
       questions: null,
       answers: null,
       latestQuestion: null,
-      latestAnswers: null
+      latestAnswers: null,
     }
+  }
+
+  componentDidMount() {
+    const teamKey = this.props.match.params['key']
+
+    if (teamKey === null || teamKey === undefined || teamKey === '') {
+      this.props.history.push(`/`)
+      return
+    }
+
+    if (!this.api.loggedIn()) {
+      this.props.history.push(`/l/${teamKey}`)
+      return
+    }
+
     this.loadData()
   }
 
   private api: Api = Api.getInstance()
 
+
   loadData = async () => {
+    this.setState({ user: this.api.currentUser() })
+    this.api.subscribe<UserModel>('user', user => this.setState({ user }))
+
     this.api.subscribe<TeamModel>('team', team => this.setState({ team, teamNotFound: team === null }))
     this.api.subscribe<MemberModel[]>('members', members => this.setState({ members }))
+    this.api.subscribe<UserModel[]>('users', this.handleUsersChange)
     this.api.subscribe<QuestionModel[]>('questions', questions => this.setState({ questions, latestQuestion: getLatestQuestion(questions) }))
     this.api.subscribe<AnswersModel[]>('answers', answers => this.setState({ answers }))
 
     this.api.loadFor(this.props.match.params['key'])
   }
 
+  handleUsersChange = (users: UserModel[]) => {
+    this.setState({ users })
+
+    if (this.state.teamNotFound)
+      return
+
+    // check if first time login
+    const currentUser = this.api.currentUser()
+    if (currentUser === null || this.state.members === null) {
+      return
+    }
+
+    if (users.find(x => x.key === currentUser.key) === undefined) {
+      return
+    }
+
+    const userMember = this.state.members.find(x => x.inviteEmail === currentUser.email)
+    if (userMember === undefined) {
+      // user is not invited to this team!
+      this.props.history.push('/np')
+      return
+    }
+
+    this.api.saveMember({ ...userMember, user: currentUser.key })
+  }
+
   public render() {
     const { match } = this.props
-    const { loading, team, teamNotFound, answers, members, questions, latestQuestion } = this.state
+    const { loading, team, teamNotFound, answers, members, users, questions, latestQuestion, user } = this.state
     const teamKey = match.params['key']
 
     return (
@@ -64,6 +115,7 @@ class Team extends React.PureComponent<Props, State> {
         <AnswersContainer
           answers={answers}
           members={members}
+          user={user}
           latestQuestion={latestQuestion}
           addAnswer={this.api.saveAnswer}
         />
@@ -78,6 +130,8 @@ class Team extends React.PureComponent<Props, State> {
         <MembersContainer
           teamKey={teamKey}
           members={members}
+          isAdmin={false}
+          users={users}
           addMember={this.addMember}
           saveMember={this.saveMember}
         />
@@ -91,8 +145,8 @@ class Team extends React.PureComponent<Props, State> {
       name: teamName
     })
 
-    this.props.history.push(`/`, null)
-    this.props.history.push(`${teamKey}`, null)
+    this.props.history.push(`/`)
+    this.props.history.push(`t/${teamKey}`)
   }
 
   addMember = async (member: MemberModel) => {

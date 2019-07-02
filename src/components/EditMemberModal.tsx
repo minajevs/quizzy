@@ -1,16 +1,18 @@
 import * as React from 'react'
 
 import MemberModel from 'models/member'
+import UserModel from 'models/user'
 
 import Validation from './Validation'
 
-import { Button, Icon, Modal, Input } from 'semantic-ui-react'
+import { Button, Icon, Modal, Input, Popup, Container, Label } from 'semantic-ui-react'
 
 type Props = {
     open: boolean
     onSave: (member: MemberModel) => void
     onClose: () => void
     member: MemberModel
+    user: UserModel | null
 }
 
 type State = {
@@ -18,47 +20,71 @@ type State = {
     validate: boolean
 }
 
-class EditMemberModal extends React.Component<Props, State>{
-    state: State = { member: this.props.member, validate: false }
-    render() {
-        const { member, validate } = this.state
-        const { open, onClose, onSave } = this.props
-        return (
-            <>
-                <Modal open={open} onClose={onClose}>
-                    <Modal.Header>Edit "{member.name}"</Modal.Header>
-                    <Modal.Content>
-                        <label>Member name</label>
-                        <Input onChange={this.handleChange('name')} value={member.name} fluid type='text' onKeyPress={this.onKeyPress('Enter', this.save)} />
-                        <Validation value={member.name} error="Member name can't be empty!" rule={this.notEmpty} validate={validate}/>
-                    </Modal.Content>
-                    <Modal.Actions>
-                        <Button onClick={onClose}>Cancel</Button>
-                        <Button negative disabled onClick={onClose} icon='delete' labelPosition='right' content='Remove' />
-                        <Button positive onClick={this.save} icon='save' labelPosition='right' content='Save' />
-                    </Modal.Actions>
-                </Modal>
-            </>
-        )
-    }
+const EditMemberModal: React.FC<Props> = props => {
+    const [state, setState] = React.useState<State>({ member: props.member, validate: false })
 
-    private notEmpty = (value: string) => value !== ''
+    const { member, validate } = state
+    const { open, onClose, onSave } = props
 
-    private onKeyPress = (expectedKey: string, func: () => void) => (event: React.KeyboardEvent) => {
+    const notEmpty = React.useCallback((value: string) => (value !== ''), [])
+
+    const onKeyPress = React.useCallback((expectedKey: string, func: () => void) => (event: React.KeyboardEvent) => {
         if (event.key === expectedKey)
             func()
-    }
+    }, [])
 
-    private handleChange = (field: keyof MemberModel) => (event: React.ChangeEvent<HTMLInputElement>) => {
-        this.setState({ ...this.state, member: { ...this.state.member, [field]: event.target.value } })
-    }
+    const handleChange = React.useCallback((field: keyof MemberModel) => (event: React.ChangeEvent<HTMLInputElement>) => {
+        event.persist()
+        setState(prev => ({ ...prev, member: { ...prev.member, [field]: event.target.value } }))
+    }, [])
 
-    private save = () => {
-        if(!this.notEmpty(this.state.member.name))
-            return this.setState({validate: true})
+    const save = React.useCallback(() => {
+        if (!notEmpty(state.member.name))
+            return setState(prev => ({ ...prev, validate: true }))
 
-        this.props.onSave(this.state.member)
-    }
+        props.onSave(state.member)
+    }, [props.onSave, state.member])
+
+    const emailField = React.useMemo(() => {
+        if (props.user === null) {
+            return (
+                <>
+                    <Popup trigger={<Icon name="question circle outline" />} content='Only user with that email will be allowed to a team' />
+                    <Input fluid onChange={handleChange('inviteEmail')} placeholder='john@example.com' type='text' value={state.member.inviteEmail} onKeyPress={onKeyPress('Enter', save)} />
+                </>
+            )
+        } else {
+            return (
+                <Container fluid>
+                    <Popup
+                        trigger={<Icon color="green" name="check" />}
+                        content={props.user.email}
+                        position="bottom center" />
+                    User already joined
+                </Container>
+            )
+        }
+    }, [props.user, state.member, onKeyPress, save])
+
+    return (
+        <>
+            <Modal open={open} onClose={onClose}>
+                <Modal.Header>Edit "{member.name}"</Modal.Header>
+                <Modal.Content>
+                    <label>Member name</label>
+                    <Input onChange={handleChange('name')} value={member.name} fluid type='text' onKeyPress={onKeyPress('Enter', save)} />
+                    <Validation value={member.name} error="Member name can't be empty!" rule={notEmpty} validate={validate} />
+                    <label>Email</label>
+                    {emailField}
+                </Modal.Content>
+                <Modal.Actions>
+                    <Button onClick={onClose}>Cancel</Button>
+                    <Button negative disabled onClick={onClose} icon='delete' labelPosition='right' content='Remove' />
+                    <Button positive onClick={save} icon='save' labelPosition='right' content='Save' />
+                </Modal.Actions>
+            </Modal>
+        </>
+    )
 }
 
 export default EditMemberModal

@@ -15,55 +15,55 @@ type Props = {
     teamKey?: string
 }
 
-class CreateNewTeam extends React.Component<Props, State> {
-    state: State = {teamKey: this.props.teamKey || '', teamName: '', validate: false}
-    render() {
-        return (
-            <>
-                <Input
-                    fluid
-                    type="text"
-                    label='New team id'
-                    placeholder='New team id'
-                    defaultValue={this.state.teamKey}
-                    onChange={this.handleChange('teamKey')}
-                />
-                <Validation value={this.state.teamKey} error="Key can't be empty!" rule={this.notEmpty} validate={this.state.validate}/>
-                <br />
-                <Input
-                    fluid
-                    type="text"
-                    label='New team name'
-                    placeholder='New team name'
-                    onKeyPress={this.onKeyPress('Enter', this.onAddTeam)}
-                    onChange={this.handleChange('teamName')}
-                />
-                <Validation value={this.state.teamName} error="Name can't be empty!" rule={this.notEmpty} validate={this.state.validate}/>
-                <br/>
-                <Button onClick={this.onAddTeam} color='teal' content='Create' labelPosition='right' icon='plus circle' />
-            </>
-        )
-    }
+const CreateNewTeam: React.FC<Props> = props => {
+    const [state, setState] = React.useState<State>({ teamKey: props.teamKey || '', teamName: '', validate: false })
 
-    private notEmpty = (value: string) => value !== ''
+    const notEmpty = React.useCallback((value: string) => (value !== ''), [])
 
-    private onAddTeam = () => {
-        const { teamKey, teamName } = this.state
+    const onAddTeam = React.useCallback(() => {
+        const { teamKey, teamName } = state
 
-        if(!this.notEmpty(teamKey) || !this.notEmpty(teamName))
-            return this.setState({validate: true})
+        if (!notEmpty(teamKey) || !notEmpty(teamName))
+            return setState(prev => ({ ...prev, validate: true }))
 
-        this.props.onAddTeam(teamKey, teamName)
-    }
+        props.onAddTeam(teamKey, teamName)
+    }, [state.teamKey, state.teamName])
 
-    private handleChange = (field: keyof State) => (event: React.ChangeEvent<HTMLInputElement>) => {
-        this.setState({ ...this.state, [field]: event.target.value })
-    }
+    const handleChange = React.useCallback((field: keyof State) => (event: React.ChangeEvent<HTMLInputElement>) => {
+        event.persist()
+        setState(prev => ({ ...prev, [field]: event.target.value }))
+    }, [])
 
-    private onKeyPress = (expectedKey: string, func: () => void) => (event: React.KeyboardEvent) => {
+    const onKeyPress = React.useCallback((expectedKey: string, func: () => void) => (event: React.KeyboardEvent) => {
         if (event.key === expectedKey)
             func()
-    }
+    }, [])
+
+    return (
+        <>
+            <Input
+                fluid
+                type="text"
+                label='New team id'
+                placeholder='New team id'
+                defaultValue={state.teamKey}
+                onChange={handleChange('teamKey')}
+            />
+            <Validation value={state.teamKey} error="Key can't be empty!" rule={notEmpty} validate={state.validate} />
+            <br />
+            <Input
+                fluid
+                type="text"
+                label='New team name'
+                placeholder='New team name'
+                onKeyPress={onKeyPress('Enter', onAddTeam)}
+                onChange={handleChange('teamName')}
+            />
+            <Validation value={state.teamName} error="Name can't be empty!" rule={notEmpty} validate={state.validate} />
+            <br />
+            <Button onClick={onAddTeam} color='teal' content='Create' labelPosition='right' icon='plus circle' />
+        </>
+    )
 }
 
 export default CreateNewTeam

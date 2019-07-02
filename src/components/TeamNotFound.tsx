@@ -8,7 +8,7 @@ const TeamNotFound = (teamKey: string, onAddTeam: (teamKey: string, teamName: st
             <Header color='red'>
                 Team with key '{teamKey}' was not found! Do you want to create it?
             </Header>
-            <CreateNewTeam onAddTeam={onAddTeam} teamKey={teamKey}/>
+            <CreateNewTeam onAddTeam={onAddTeam} teamKey={teamKey} />
         </Segment>
     </Container>
 )

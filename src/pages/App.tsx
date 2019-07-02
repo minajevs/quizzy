@@ -1,6 +1,7 @@
 import * as React from 'react'
 import Api from 'api'
 import Team from 'models/team'
+import UserModel from 'models/user'
 import { RouteComponentProps, withRouter } from 'react-router'
 import { Grid, Container, Button, Icon, Modal, Input, Label, Dropdown, DropdownItemProps, DropdownProps, Segment, Header } from 'semantic-ui-react'
 import CreateNewTeam from 'components/CreateNewTeam';
@@ -8,7 +9,8 @@ import Validation from 'components/Validation';
 
 type State = {
   teamId: string
-  validate: boolean
+  validate: boolean,
+  user: UserModel | null
 }
 
 type Props = {} & RouteComponentProps<{}>
@@ -19,10 +21,15 @@ class App extends React.Component<Props, State> {
     super(props)
 
     this.api = Api.getInstance()
-    this.state = { teamId: '', validate: false }
+    this.state = { teamId: '', validate: false, user: this.api.currentUser() }
+
+    this.api.subscribe<UserModel>('user', user => {
+      this.setState({ user })
+    })
   }
 
   public render() {
+    const { user } = this.state
     return (
       <Grid>
         <Grid.Row>
@@ -40,9 +47,15 @@ class App extends React.Component<Props, State> {
                   onKeyPress={this.onKeyPress('Enter', this.join)}
                   action={{ color: 'teal', labelPosition: 'right', icon: 'angle double right', content: 'Join', onClick: this.join }}
                 />
-                <Validation value={this.state.teamId} error='Please enter an id!' rule={this.notEmpty} validate={this.state.validate}/>
-                <Header> Or create a new team: </Header>
-                <CreateNewTeam onAddTeam={this.addTeam}/>
+                <Validation value={this.state.teamId} error='Please enter an id!' rule={this.notEmpty} validate={this.state.validate} />
+                {user === null
+                  ? <>
+                    <Header> Or log in to create a new team</Header>
+                  </>
+                  : <>
+                    <Header> Or create a new team: </Header>
+                    <CreateNewTeam onAddTeam={this.addTeam} />
+                  </>}
               </Segment>
             </Container>
           </Grid.Column>
@@ -51,21 +64,21 @@ class App extends React.Component<Props, State> {
     )
   }
 
-  notEmpty = (value: string) => value !== '' && value !== undefined 
+  notEmpty = (value: string) => value !== '' && value !== undefined
 
   addTeam = async (teamKey: string, teamName: string) => {
     await this.api.createTeam({
       key: teamKey,
       name: teamName
     })
-    this.props.history.push(`${teamKey}`)
+    this.props.history.push(`t/${teamKey}`)
   }
 
   join = () => {
-    if(!this.notEmpty(this.state.teamId))
-      return this.setState({validate: true})
+    if (!this.notEmpty(this.state.teamId))
+      return this.setState({ validate: true })
 
-    this.props.history.push(`${this.state.teamId}`)
+    this.props.history.push(`t/${this.state.teamId}`)
   }
 
   private handleChange = <T extends keyof State>(event: React.ChangeEvent<HTMLInputElement>) => {
@@ -78,7 +91,7 @@ class App extends React.Component<Props, State> {
   }
 
   private onKeyPress = (expectedKey: string, func: () => void) => (event: React.KeyboardEvent) => {
-    if(event.key === expectedKey)
+    if (event.key === expectedKey)
       func()
   }
 }

@@ -2,9 +2,7 @@ import * as React from 'react'
 
 import { UnitsMeasure } from 'models/question'
 
-import MaskedInput from 'react-text-mask'
-
-import { Form, Icon, SemanticICONS, Dropdown, Container, Label } from 'semantic-ui-react'
+import { Form, Icon, SemanticICONS, Popup } from 'semantic-ui-react'
 
 type Props = {
     defaultValue?: UnitsMeasure
@@ -18,66 +16,53 @@ type State = {
     currentChoice: UnitsMeasure
 }
 
-class UnitsInput extends React.Component<Props, State> {
-    state: State = { currentChoice: this.props.defaultValue || 'free' }
-    render() {
-        return (
-            <>
-                <label>Units:
-                    {this.selectIcon('pencil', 'free')}
-                    {this.selectIcon('clock', 'time')}
-                    {this.selectIcon('calendar', 'date')}
-                    {this.selectIcon('calendar check', 'datetime')}
-                </label>
-                {
-                    this.input()
-                }         
-            </>
-        )
-    }
+const UnitsInput: React.FC<Props> = props => {
+    const [state, setState] = React.useState<State>({ currentChoice: props.defaultValue || 'free' })
+    const { onKeyPress } = props
 
-    color = (value: UnitsMeasure) => this.state.currentChoice === value ? 'teal' : 'black'
-    inverted = (value: UnitsMeasure) => this.state.currentChoice === value
+    const color = React.useCallback((value: UnitsMeasure) => (state.currentChoice === value ? 'teal' : 'black'),
+        [state.currentChoice])
+    const inverted = React.useCallback((value: UnitsMeasure) => (state.currentChoice === value),
+        [state.currentChoice])
+    const handleTypeChange = React.useCallback((type: UnitsMeasure) => (event: any) => {
+        setState({ currentChoice: type })
+        props.onTypeChange(type)
+    }, [props.onTypeChange])
 
-    selectIcon = (name: SemanticICONS, value: UnitsMeasure) => (
-        <Icon
-            className='select-icon'
-            name={name}
-            bordered
-            color={this.color(value)}
-            inverted={this.inverted(value)}
-            onClick={this.handleTypeChange(value)}
-        />)
-
-    input = () => {
-        const { onChange, onKeyPress } = this.props
-        const { currentChoice } = this.state
-        switch(currentChoice){
-            case 'free':
-                return <Form.Input 
-                    onChange={this.props.onChange} 
-                    defaultValue={this.props.defaultUnits}
-                    placeholder='beer(s)' 
-                    type='text' 
-                    onKeyPress={onKeyPress} 
-                    fluid 
+    const selectIcon = React.useCallback((name: SemanticICONS, value: UnitsMeasure) => (
+        <Popup
+            content={value === 'free'
+                ? 'Only numbers in answer will be allowed'
+                : 'Any text will be allowed in answer'}
+            trigger={
+                <Icon
+                    className='select-icon'
+                    name={name}
+                    bordered
+                    color={color(value)}
+                    inverted={inverted(value)}
+                    onClick={handleTypeChange(value)}
                 />
+            }
+        />), [color, inverted, handleTypeChange])
 
-            case 'time':
-                return <Label icon='clock' size='large' content='time' className='middle-label' />
-            case 'date':
-                return <Label icon='calendar' size='large' content='date' className='middle-label' />
-            case "datetime":
-                return <Label icon='calendar check' size='large' content='date and time' className='middle-label' />
-            default:
-                return 'no input for dat'
-        }
-    }
-
-    handleTypeChange = (type: UnitsMeasure) => (event: any) => {
-        this.setState({ currentChoice: type })
-        this.props.onTypeChange(type)        
-    }
+    return (
+        <>
+            <label>Units:
+                {selectIcon('forward', 'free')}
+                {selectIcon('keyboard', 'manual')}
+            </label>
+            <Form.Input
+                onChange={props.onChange}
+                defaultValue={props.defaultUnits}
+                placeholder='beer(s)'
+                type='text'
+                onKeyPress={onKeyPress}
+                fluid
+            />
+            Answer validation: {state.currentChoice === 'free' ? 'automatic' : 'manual'}
+        </>
+    )
 }
 
 export default UnitsInput

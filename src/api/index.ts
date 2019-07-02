@@ -1,3 +1,4 @@
+import * as firebaseui from 'firebaseui'
 import * as firebase from 'firebase/app'
 import 'firebase/database'
 
@@ -6,10 +7,11 @@ import Member from 'models/member'
 import Question from 'models/question'
 import Answer from 'models/answer'
 import Answers from 'models/answers'
+import User from 'models/user'
 import Result from 'models/result'
 
 import getResults from 'api/results'
-import {getLatestQuestion, getQuestionAnswers} from 'api/helpers'
+import { getLatestQuestion, getQuestionAnswers } from 'api/helpers'
 
 import * as moment from 'moment'
 import { EventEmitter } from 'events'
@@ -26,7 +28,9 @@ export default class Api {
     private emitter: EventEmitter = new EventEmitter()
 
     private state: {
-        readonly team?: Team | null
+        readonly user: User | null
+        readonly users: User[]
+        readonly team: Team | null
         readonly members: Member[]
         readonly questions: Question[]
         readonly answers: Answers[]
@@ -36,6 +40,9 @@ export default class Api {
     private static instance: Api
     private app: firebase.app.App
     private database: firebase.database.Database
+
+    private ui: firebaseui.auth.AuthUI
+
     private config = {
         apiKey: "AIzaSyBxqTkwT_BM87TefrBgGL5DqIFdnGPupr4",
         authDomain: "quizzy-2ba94.firebaseapp.com",
@@ -43,6 +50,14 @@ export default class Api {
         projectId: "quizzy-2ba94",
         storageBucket: "quizzy-2ba94.appspot.com",
         messagingSenderId: "998358783561"
+    }
+
+    private authConfig: firebaseui.auth.Config = {
+        signInSuccessUrl: 'l',
+        signInOptions: [
+            firebase.auth.GoogleAuthProvider.PROVIDER_ID
+        ],
+        tosUrl: '/tos'
     }
 
     private constructor() {
@@ -53,7 +68,18 @@ export default class Api {
         this.app = firebase.initializeApp(this.config)
         this.database = this.app.database()
 
+        firebase.auth().setPersistence(firebase.auth.Auth.Persistence.LOCAL)
+        firebase.auth().onAuthStateChanged(user => {
+            const mappedUser = this.mapUser(user)
+
+            this.state = { ...this.state, user: mappedUser }
+            if (mappedUser !== null) this.saveUser(mappedUser)
+            this.emitter.emit('user', this.state.user)
+        })
+
         this.state = {
+            user: this.mapUser(firebase.auth().currentUser),
+            users: [],
             questions: [],
             answers: [],
             members: [],
@@ -61,18 +87,54 @@ export default class Api {
         }
     }
 
+    loggedIn = (): boolean => this.state.user !== null
+    currentUser = () => this.state.user
+    currentMember = () => this.state.members.find(x => x.user === this.state.user!.key)
+    isAdmin = () => this.state.user !== null &&
+        this.state.members !== null &&
+        this.state.members.find(x => x.user === this.state.user!.key)!.isAdmin
+
+    startFirebaseUi = (elementId: string, returnUrl: string) => {
+        const instance = firebaseui.auth.AuthUI.getInstance()
+
+        if (instance !== null)
+            this.ui = instance
+        else
+            this.ui = new firebaseui.auth.AuthUI(firebase.auth())
+
+
+        this.ui.start(elementId, { ...this.authConfig, signInSuccessUrl: returnUrl })
+    }
+
+    logOut = () => {
+        firebase.auth().signOut()
+    }
+
+    private mapUser = (user: firebase.User | null): User | null => {
+        if (user === null) return null
+
+        const internalUser = {
+            key: user.uid,
+            name: user.displayName || '',
+            email: user.email || '',
+            avatarUrl: user.photoURL || 'https://cdn4.iconfinder.com/data/icons/defaulticon/icons/png/256x256/help.png'
+        }
+
+        return internalUser
+    }
+
     subscribe = <T>(event: keyof Api['state'], callback: (newData: T) => void) => {
         this.emitter.addListener(event, callback)
     }
 
     loadFor = async (teamKey: string) => {
-        await Promise.all([
-            this.bind(`teams/${teamKey}`, 'team'),
-            this.bind(`members/${teamKey}`, 'members', this.firebaseArrayBinder),
-            this.bind(`questions/${teamKey}`, 'questions', this.firebaseArrayBinder),
-            this.bind(`answers/${teamKey}`, 'answers', this.answersBinder)
-        ])
-     
+        // should load in that particular sequence. Can't do promise.all
+        await this.bind(`teams/${teamKey}`, 'team')
+        await this.bind(`members/${teamKey}`, 'members', this.firebaseArrayBinder)
+        await this.bind(`users`, 'users', this.firebaseArrayBinder)
+        await this.bind(`questions/${teamKey}`, 'questions', this.firebaseArrayBinder)
+        await this.bind(`answers/${teamKey}`, 'answers', this.answersBinder)
+
         console.log('finished binding stuff')
         return this.state
     }
@@ -97,32 +159,67 @@ export default class Api {
 
     private answersBinder = (snap: firebase.database.DataSnapshot | null) => snap !== null
         ? Object.keys(snap.val() || {}).map(k => (
-            {   answers: this.arrayBinder(snap.val()[k]), 
-                questionKey: k 
+            {
+                answers: this.arrayBinder(snap.val()[k]),
+                questionKey: k
             } as Answers))
         : null
 
-    createTeam = async (team: Team): Promise<void> => {
-        return this.create<Team>('teams', team)
-    }
+    // DATABASE
 
-    createMember = async (member: Member): Promise<void> => {
+    requestInvalid = () => {
+        if (!this.loggedIn())
+            return true
+
         if (this.database === undefined)
             throw new Error('Please, init API first byt calling .init()!')
+
+        return false
+    }
+
+    createTeam = async (team: Team): Promise<void> => {
+        if (this.requestInvalid())
+            return
+
+        await this.create<Team>('teams', team)
+
+        await this.saveUser(this.state.user!)
+
+        return this.createMember({
+            key: '',
+            name: this.state.user!.name,
+            user: this.state.user!.key,
+            inviteEmail: this.state.user!.email,
+            team: team.key,
+            points: 0,
+            isAdmin: true
+        })
+    }
+
+    saveUser = async (user: User): Promise<void> => {
+        if (this.requestInvalid())
+            return
+
+        return this.database.ref(`users/${user.key}`).set(user)
+    }
+
+    createMember = async (member: Member): Promise<any> => {
+        if (this.requestInvalid())
+            return
 
         return this.database.ref(`members`).child(member.team).push(member)
     }
 
     saveMember = async (member: Member): Promise<void> => {
-        if (this.database === undefined)
-            throw new Error('Please, init API first byt calling .init()!')
+        if (this.requestInvalid())
+            return
 
         return this.database.ref(`members/${member.team}/${member.key}`).set(member)
     }
 
     createQuestion = async (question: Question) => {
-        if (this.database === undefined)
-            throw new Error('Please, init API first byt calling .init()!')
+        if (this.requestInvalid())
+            return
 
         const result = await this.database.ref(`questions`)
             .child(question.team)
@@ -136,12 +233,12 @@ export default class Api {
     }
 
     saveQuestion = async (question: Question) => {
-        if (this.database === undefined)
-            throw new Error('Please, init API first byt calling .init()!')
+        if (this.requestInvalid())
+            return
 
         if (this.state.answers === null)
             throw new Error('Ups! That should not happen!')
-            
+
         const questionToUpdate = this.state.questions.find(x => x.key === question.key)
 
         if (questionToUpdate !== undefined) {
@@ -180,7 +277,7 @@ export default class Api {
     saveAnswer = async (question: string, answer: Answer) => {
         if (this.database === undefined)
             throw new Error('Please, init API first byt calling .init()!')
-        
+
         const result = await this.database.ref(`answers/${answer.team}/${question}/${answer.key}`).set(answer)
     }
 
