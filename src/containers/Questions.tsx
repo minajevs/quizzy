@@ -16,30 +16,28 @@ type Props = {
     saveQuestion: (question: QuestionModel) => Promise<void>
 }
 
-class Questions extends React.Component<Props> {
-    public render() {
-        const { teamKey, questions, members, answers } = this.props
+const Questions: React.FC<Props> = props => {
+    const { teamKey, questions, members, answers } = props
 
-        if (questions === null)
-            return Loading('questions')
+    const addQuestion = React.useCallback(async (question: QuestionModel) => {
+        await props.addQuestion(question)
+    }, [props.addQuestion])
 
-        return <QuestionsComponent 
-            teamKey={teamKey}
-            questions={questions} 
-            answers={answers || []}
-            members={members || []}
-            onAddQuestion={this.addQuestion}
-            onSaveQuestion={this.saveQuestion}
-            />
-    }
+    const saveQuestion = React.useCallback(async (question: QuestionModel) => {
+        await props.saveQuestion(question)
+    }, [props.saveQuestion])
 
-    private addQuestion = async (question: QuestionModel) => {
-        await this.props.addQuestion(question)
-    }
+    if (questions === null)
+        return Loading('questions')
 
-    private saveQuestion = async (question: QuestionModel) => {
-        await this.props.saveQuestion(question)
-    }
+    return <QuestionsComponent
+        teamKey={teamKey}
+        questions={questions}
+        answers={answers || []}
+        members={members || []}
+        onAddQuestion={addQuestion}
+        onSaveQuestion={saveQuestion}
+    />
 }
 
 export default Questions

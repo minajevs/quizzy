@@ -13,21 +13,16 @@ type Props = {
     children: React.ReactNode
 }
 
-class Team extends React.Component<Props> {
-    public render() {
-        const { team, teamNotFound, children, teamKey, onAddTeam, loading } = this.props
+const Team: React.FC<Props> = ({ team, teamNotFound, children, teamKey, onAddTeam, loading }) => {
+    if (teamNotFound)
+        return TeamNotFound(teamKey, onAddTeam)
 
-        if (teamNotFound)
-            return TeamNotFound(teamKey, onAddTeam)
+    if (team === null)
+        return Loading('team')
 
-        if (team === null)
-            return Loading('team')
-
-        return <TeamComponent team={team} loading={loading}>
-            {children}
-        </TeamComponent>
-
-    }
+    return <TeamComponent team={team} loading={loading}>
+        {children}
+    </TeamComponent>
 }
 
 export default Team

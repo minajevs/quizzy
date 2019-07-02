@@ -21,46 +21,44 @@ type Props = {
     addAnswer: (question: string, answer: AnswerModel) => Promise<void>
 }
 
-class Answers extends React.Component<Props> {
-    public render() {
-        const { answers, members, latestQuestion } = this.props
+const Answers: React.FC<Props> = props => {
+    const { answers, members, latestQuestion } = props
 
-        if (latestQuestion === null)
-            return (
-                <Container>
-                    <Segment>
-                        No questions yet
+    const addAnswer = React.useCallback(async (answer: AnswerModel) => {
+        await props.addAnswer((props.latestQuestion as QuestionModel).key, answer)
+    }, [props.addAnswer, props.latestQuestion])
+
+    if (latestQuestion === null)
+        return (
+            <Container>
+                <Segment>
+                    No questions yet
                     </Segment>
-                </Container>
-            )
+            </Container>
+        )
 
-        if (answers === null)
-            return Loading('answers')
+    if (answers === null)
+        return Loading('answers')
 
-        if (members === null)
-            return Loading('members')
+    if (members === null)
+        return Loading('members')
 
-        const latestAnswers = getQuestionAnswers(latestQuestion.key, answers)
+    const latestAnswers = getQuestionAnswers(latestQuestion.key, answers)
 
-        if (latestQuestion.answer !== null && latestQuestion.answer !== undefined) {
-            const results = getResults(latestQuestion, latestAnswers.answers, members)
-            return <ResultsComponent
-                question={latestQuestion}
-                results={results.filter(result => !result.isAuthor)}
-            />
-        }
-
-        return <AnswersComponent
+    if (latestQuestion.answer !== null && latestQuestion.answer !== undefined) {
+        const results = getResults(latestQuestion, latestAnswers.answers, members)
+        return <ResultsComponent
             question={latestQuestion}
-            answers={latestAnswers.answers}
-            members={members}
-            onAddAnswer={this.addAnswer}
+            results={results.filter(result => !result.isAuthor)}
         />
     }
 
-    private addAnswer = async (answer: AnswerModel) => {
-        await this.props.addAnswer((this.props.latestQuestion as QuestionModel).key, answer)
-    }
+    return <AnswersComponent
+        question={latestQuestion}
+        answers={latestAnswers.answers}
+        members={members}
+        onAddAnswer={addAnswer}
+    />
 }
 
 export default Answers

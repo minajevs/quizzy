@@ -10,29 +10,25 @@ type Props = {
     saveMember: (member: MemberModel) => Promise<void>
 }
 
-class Members extends React.PureComponent<Props> {
-    state = {members: undefined}
+const Members: React.FC<Props> = props => {
+    const { teamKey, members } = props
 
-    public render() {
-        const { teamKey, members } = this.props
-        
-        if (members === null)
-            return Loading('members')
+    const addMember = React.useCallback(async (member: MemberModel) => {
+        await props.addMember(member)
+    }, [props.addMember])
 
-        return <MembersComponent 
-            members={members} 
-            teamKey={teamKey}
-            onAddMember={this.addMember}
-            onSaveMember={this.saveMember}/>
-    }
+    const saveMember = React.useCallback(async (member: MemberModel) => {
+        await props.saveMember(member)
+    }, [props.saveMember])
 
-    private addMember = async (member: MemberModel) => {
-        await this.props.addMember(member)
-    }
+    if (members === null)
+        return Loading('members')
 
-    private saveMember = async (member: MemberModel) => {
-        await this.props.saveMember(member)
-    }
+    return <MembersComponent
+        members={members}
+        teamKey={teamKey}
+        onAddMember={addMember}
+        onSaveMember={saveMember} />
 }
 
 export default Members
