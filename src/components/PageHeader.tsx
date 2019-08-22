@@ -1,58 +1,41 @@
 import * as React from 'react'
-import Api from 'api'
 
 import UserModel from 'models/user'
-import { RouteComponentProps, withRouter } from 'react-router'
 
 import { Grid, Container, Button, Header } from 'semantic-ui-react'
 
-type Props = RouteComponentProps<{}>
+import { useRouter } from 'HookedRouter'
+import { context as appContext } from 'context/app'
+import { context as usersContext } from 'context/users'
 
-type State = {
-    user: UserModel | null
-}
+const PageHeader: React.FC = props => {
+    const appStore = React.useContext(appContext)
+    const usersStore = React.useContext(usersContext)
+    const router = useRouter()
 
-// TODO: separate container
-class PageHeader extends React.Component<Props, State> {
-    private api: Api
-    constructor(props: RouteComponentProps<{}>) {
-        super(props)
+    const requestLogIn = React.useCallback(() => router.history.push('/l'), [router])
 
-        this.api = Api.getInstance()
-        this.state = { user: null }
-
-        this.api.subscribe<UserModel>('user', user => {
-            this.setState({ user })
-        })
-    }
-
-    public render() {
-        const { user } = this.state
-        return (
-            <Grid>
-                <Grid.Row>
-                    <Container>
-                        <Header floated="right" dividing>
-                            {this.getHeader()}
-                        </Header>
-                    </Container>
-                </Grid.Row>
-            </Grid>
-        )
-    }
-
-    getHeader = () => this.state.user === null
+    const getHeader = React.useCallback(() => (usersStore.currentUser === null
         ? <>
             Not logged in
-            <Button basic style={{ margin: '0 1em' }} onClick={this.logIn}>Login</Button>
+            <Button basic style={{ margin: '0 1em' }} onClick={requestLogIn}>Login</Button>
         </>
         : <>
-            Logged in as {this.state.user.name}
-            <Button basic style={{ margin: '0 1em' }} onClick={this.logOut}>Logout</Button>
-        </>
+            Logged in as {usersStore.currentUser.name}
+            <Button basic style={{ margin: '0 1em' }} onClick={appStore.logOut}>Logout</Button>
+        </>), [usersStore.currentUser])
 
-    logOut = () => this.api.logOut()
-    logIn = () => this.props.history.push('/l')
+    return (
+        <Grid>
+            <Grid.Row>
+                <Container>
+                    <Header floated="right" dividing>
+                        {getHeader()}
+                    </Header>
+                </Container>
+            </Grid.Row>
+        </Grid>
+    )
 }
 
-export default withRouter(PageHeader)
+export default PageHeader

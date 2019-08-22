@@ -10,18 +10,27 @@ import ResultsComponent from 'components/Results'
 import getResults from 'api/results'
 
 import { Button, Modal, Icon, Container, Divider } from 'semantic-ui-react'
-import ResultsTable from './ResultsTable';
+import ResultsTable from './ResultsTable'
+
+import { context as membersContext } from 'context/members'
+import { context as answersContext } from 'context/answers'
 
 type Props = {
     open: boolean
     onClose: () => void
     onEdit: () => void
     question: QuestionModel
-    answers: AnswerModel[]
-    members: MemberModel[]
 }
 
-const ViewQuestionModal: React.FC<Props> = ({ open, onClose, onEdit, question, answers, members }) => {
+const ViewQuestionModal: React.FC<Props> = ({ open, onClose, onEdit, question }) => {
+    const membersStore = React.useContext(membersContext)
+    const answersStore = React.useContext(answersContext)
+
+    const { members } = membersStore
+    const answers = answersStore.getAnswers(question.key)
+
+    if (members === null) return <>Members not found!</>
+
     let results = null
     if (question.answer !== null && question.answer !== undefined) {
         results = getResults(question, answers, members)

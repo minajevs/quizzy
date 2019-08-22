@@ -1,5 +1,8 @@
 import * as React from 'react'
 
+import { context as appContext } from 'context/app'
+import { useRouter } from 'HookedRouter'
+
 import Validation from 'components/Validation'
 
 import { Input, Button } from 'semantic-ui-react'
@@ -11,22 +14,25 @@ type State = {
 }
 
 type Props = {
-    onAddTeam: (teamKey: string, teamName: string) => void
     teamKey?: string
 }
 
 const CreateNewTeam: React.FC<Props> = props => {
     const [state, setState] = React.useState<State>({ teamKey: props.teamKey || '', teamName: '', validate: false })
+    const store = React.useContext(appContext)
+    const router = useRouter()
 
     const notEmpty = React.useCallback((value: string) => (value !== ''), [])
 
-    const onAddTeam = React.useCallback(() => {
+    const onAddTeam = React.useCallback(async () => {
         const { teamKey, teamName } = state
 
         if (!notEmpty(teamKey) || !notEmpty(teamName))
             return setState(prev => ({ ...prev, validate: true }))
 
-        props.onAddTeam(teamKey, teamName)
+        await store.createTeam(teamKey, teamName)
+        router.history.push(`t/${teamKey}`)
+
     }, [state.teamKey, state.teamName])
 
     const handleChange = React.useCallback((field: keyof State) => (event: React.ChangeEvent<HTMLInputElement>) => {

@@ -1,36 +1,33 @@
 import * as React from 'react'
-import Api from 'api'
+import { subscribe } from 'api'
 
 import UserModel from 'models/user'
-import { RouteComponentProps, withRouter } from 'react-router'
+import { useRouter } from 'HookedRouter'
 
-type Props = RouteComponentProps<{}>
+import { context as usersContext } from 'context/users'
 
-type State = {
-    user: UserModel | null
+type Props = {
+    children: React.ReactNode
 }
 
+const Auth: React.FC<Props> = props => {
+    const usersStore = React.useContext(usersContext)
+    const [state, setState] = React.useState<UserModel | null>(null)
+    const router = useRouter()
 
-class Auth extends React.Component<Props, State> {
-    private api: Api
-    constructor(props: RouteComponentProps<{}>) {
-        super(props)
-
-        this.api = Api.getInstance()
-        this.state = { user: null }
-
-        this.api.subscribe<UserModel | null>('user', user => {
-            if(this.state.user !== null && user === null){
+    React.useEffect(() => {
+        usersStore.init()
+        subscribe('user', user => {
+            if (state !== null && user === null) {
                 // signing out
-                this.props.history.push('/')
+                router.history.push('/')
             }
-            this.setState({ user })
-        })
-    }
 
-    public render() {
-        return this.props.children
-    }
+            setState(user)
+        })
+    }, [state])
+
+    return <>{props.children}</>
 }
 
-export default withRouter(Auth)
+export default Auth

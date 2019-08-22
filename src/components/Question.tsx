@@ -7,13 +7,13 @@ import MemberModel from 'models/member'
 
 import { Grid, Label, Item, Image, Accordion, Button, Icon, Container } from 'semantic-ui-react'
 import EditQuestionModal from 'components/EditQuestionModal'
-import ViewQuestionModal from './ViewQuestionModal';
+import ViewQuestionModal from './ViewQuestionModal'
+
+import { context as membersContext } from 'context/members'
+import { context as questionsContext } from 'context/questions'
 
 type Props = {
     question: QuestionModel
-    members: MemberModel[]
-    answers: AnswerModel[]
-    onSaveQuestion: (question: QuestionModel) => void
 }
 
 type State = {
@@ -30,13 +30,19 @@ const answer = (ans: number | null, units: UnitsMeasure, unitsString: string) =>
 
 const diff = (stamp: number, unitOfTime: moment.unitOfTime.Diff) => moment(stamp).diff(moment(0), unitOfTime, false)
 
-const authorName = (members: MemberModel[], key: string) => (members.find(x => x.key === key) as MemberModel).name
-
 const Question: React.FC<Props> = props => {
     const [state, setState] = React.useState<State>({ editing: false, open: false })
+    const membersStore = React.useContext(membersContext)
+    const questionsStore = React.useContext(questionsContext)
 
-    const { question, answers, members } = props
+    const { question } = props
     const { editing, open } = state
+
+    const { members } = membersStore
+
+    if (members === null) return <>Members not found</>
+
+    const authorName = React.useCallback((key: string) => ((members.find(x => x.key === key) as MemberModel).name), [membersStore.members])
 
     const onEdit = React.useCallback(() => {
         setState(prev => ({ ...prev, open: false, editing: true }))
@@ -51,9 +57,9 @@ const Question: React.FC<Props> = props => {
     }, [])
 
     const onSave = React.useCallback((quest: QuestionModel) => {
-        props.onSaveQuestion(quest)
+        questionsStore.saveQuestion(quest)
         setState(prev => ({ ...prev, editing: false }))
-    }, [props.onSaveQuestion])
+    }, [questionsStore.saveQuestion])
 
     const toggle = React.useCallback(() => {
         setState(prev => ({ ...prev, open: !prev.open }))
@@ -70,7 +76,7 @@ const Question: React.FC<Props> = props => {
                         <Container text fluid>{question.text}</Container>
                     </Item.Content>
                     <Item.Meta>
-                        By {authorName(members, question.author)}
+                        By {authorName(question.author)}
                     </Item.Meta>
                     <Item.Description>
                         <Container>
@@ -94,8 +100,6 @@ const Question: React.FC<Props> = props => {
                     ? <ViewQuestionModal
                         open={open}
                         question={question}
-                        answers={answers}
-                        members={members}
                         onClose={onModalClose}
                         onEdit={onEdit}
                     />

@@ -6,10 +6,7 @@ import Validation from 'components/Validation'
 
 import { Button, Icon, Modal, Input, Popup } from 'semantic-ui-react'
 
-type Props = {
-    onAdd: (member: MemberModel) => void
-    teamKey: string
-}
+import { context as membersContext } from 'context/members'
 
 type State = {
     open: boolean
@@ -17,12 +14,14 @@ type State = {
     validate: boolean
 }
 
-const AddMemberModal: React.FC<Props> = props => {
+const AddMemberModal: React.FC = props => {
     const [state, setState] = React.useState<State>({
         open: false,
-        member: { key: '', name: '', points: 0, team: props.teamKey, isAdmin: false },
+        member: { key: '', name: '', points: 0, team: '', isAdmin: false },
         validate: false
     })
+
+    const membersStore = React.useContext(membersContext)
 
     const notEmpty = React.useCallback((value: string) => (value !== ''), [])
     const onKeyPress = React.useCallback((expectedKey: string, func: () => void) => (event: React.KeyboardEvent) => {
@@ -36,16 +35,16 @@ const AddMemberModal: React.FC<Props> = props => {
     }, [])
 
     const show = React.useCallback(() => {
-        setState({ open: true, validate: false, member: { key: '', name: '', points: 0, team: props.teamKey, isAdmin: false } })
-    }, [props])
+        setState({ open: true, validate: false, member: { key: '', name: '', points: 0, team: 'will be set in store', isAdmin: false } })
+    }, [])
 
     const add = React.useCallback(() => {
         if (!notEmpty(state.member.name))
             return setState(prev => ({ ...prev, validate: true }))
 
-        props.onAdd(state.member)
+        membersStore.addMember({ ...state.member })
         cancel()
-    }, [state, props])
+    }, [state.member, membersStore.addMember])
 
     const cancel = React.useCallback(() => {
         setState(prev => ({ ...prev, open: false, validate: false }))

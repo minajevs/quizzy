@@ -4,11 +4,12 @@ import UserModel from 'models/user'
 import { Label, List, Button, Icon, Image, Container, SemanticCOLORS } from 'semantic-ui-react'
 import EditMemberModal from 'components/EditMemberModal'
 
+import { context as membersContext } from 'context/members'
+
 type Props = {
   member: MemberModel
   user: UserModel | null
   index: number
-  onSaveMember: (member: MemberModel) => void
 }
 
 type State = {
@@ -33,6 +34,8 @@ const cup = (num: number) => num === 0 ? <Icon name='winner' /> : ''
 const Member: React.FC<Props> = props => {
   const [state, setState] = React.useState<State>({ editing: false })
 
+  const membersStore = React.useContext(membersContext)
+
   const avatar = React.useMemo(() => (props.user === null
     ? <Image avatar src="https://dummyimage.com/64x64/FFF/000&text=??" />
     : <Image avatar src={props.user.avatarUrl} />), [props.user])
@@ -46,9 +49,9 @@ const Member: React.FC<Props> = props => {
   }, [])
 
   const onSave = React.useCallback((member: MemberModel) => {
-    props.onSaveMember(member)
+    membersStore.saveMember(member)
     setState({ editing: false })
-  }, [props.onSaveMember])
+  }, [membersStore.saveMember])
 
   return (
     <>

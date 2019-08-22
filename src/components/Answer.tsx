@@ -8,23 +8,32 @@ import AnswerInput from 'components/AnswerInput'
 import { Label, List, Container, Image, Input, Button } from 'semantic-ui-react'
 import { UnitsMeasure } from 'models/question'
 
+import { context as questionsContext } from 'context/questions'
+import { context as answersContext } from 'context/answers'
+import { context as membersContext } from 'context/members'
+
 type Props = {
     type: UnitsMeasure
     answer: AnswerModel
-    members: MemberModel[]
     units: string
     answersClosed: boolean
-    onAdd: (answer: AnswerModel) => void
 }
 
 type State = {
     currentAnswer: AnswerModel
 }
 
-
-const authorName = (members: MemberModel[], key: string) => members.find(x => x.key === key)!.name
-
 const Answer: React.FC<Props> = props => {
+    const questionsStore = React.useContext(questionsContext)
+    const answersStore = React.useContext(answersContext)
+    const membersStore = React.useContext(membersContext)
+
+    const { latestQuestion } = questionsStore
+    const { members } = membersStore
+
+    if (latestQuestion === null) return null
+    if (members === null) return <>Members not found</>
+
     const [state, setState] = React.useState<State>({
         currentAnswer: { ...props.answer }
     })
@@ -32,17 +41,19 @@ const Answer: React.FC<Props> = props => {
     const showInput = React.useMemo(() => ((props.answer.answer === undefined || props.answer.answer === null) && props.answer.shouldAnswer),
         [props.answer])
 
+    const authorName = React.useCallback((key: string) => members.find(x => x.key === key)!.name, [members])
+
     const onKeyPress = React.useCallback((expectedKey: string, func: () => void) => (event: React.KeyboardEvent) => {
         if (event.key === expectedKey)
             func()
     }, [])
 
     const onExclude = React.useCallback(() => {
-        props.onAdd({ ...state.currentAnswer, shouldAnswer: false })
+        answersStore.addAnswer({ ...state.currentAnswer, shouldAnswer: false })
     }, [props, state])
 
     const onSave = React.useCallback(() => {
-        props.onAdd(state.currentAnswer)
+        answersStore.addAnswer(state.currentAnswer)
     }, [props, state])
 
     const handleChange = React.useCallback((field: keyof AnswerModel) => (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -55,16 +66,16 @@ const Answer: React.FC<Props> = props => {
     }, [])
 
     const renderContent = React.useCallback(() => {
-        const { answer, members, units, type, answersClosed } = props
+        const { answer, units, type, answersClosed } = props
         const { currentAnswer } = state
 
         if (answersClosed)
             return showInput
                 ? <Container text fluid>
-                    <Label color='red' size='large'>{authorName(members, answer.author)}</Label>  did not answer
+                    <Label color='red' size='large'>{authorName(answer.author)}</Label>  did not answer
                     </Container>
                 : <Container text fluid>
-                    <Label color='green' size='large'>{authorName(members, answer.author)}</Label>  answered
+                    <Label color='green' size='large'>{authorName(answer.author)}</Label>  answered
                     </Container>
         else if (showInput)
             return <>
@@ -72,7 +83,7 @@ const Answer: React.FC<Props> = props => {
                     onChange={onChange('answer')}
                     onKeyPress={onKeyPress('Enter', onSave)}
                     type={type}
-                    label={<Label size='large'>{authorName(members, answer.author)}</Label>}
+                    label={<Label size='large'>{authorName(answer.author)}</Label>}
                     button={
                         <Button.Group>
                             <Button content='Exclude' onClick={onExclude} />
@@ -89,10 +100,10 @@ const Answer: React.FC<Props> = props => {
         else
             return answer.shouldAnswer
                 ? <Container text fluid>
-                    <Label color='green' size='large'>{authorName(members, answer.author)}</Label>  answered
+                    <Label color='green' size='large'>{authorName(answer.author)}</Label>  answered
                </Container>
                 : <Container text fluid>
-                    <Label color='grey' size='large'>{authorName(members, answer.author)}</Label>  will not answer today
+                    <Label color='grey' size='large'>{authorName(answer.author)}</Label>  will not answer today
                </Container>
     }, [state, props])
 

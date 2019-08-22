@@ -3,46 +3,54 @@ import * as React from 'react'
 import * as firebaseui from 'firebaseui'
 import { RouteComponentProps, withRouter } from 'react-router'
 
-import Api from 'api'
+import { AppApi, subscribe } from 'api'
+import Core from 'api/core'
 import { Header, Grid, Loader } from 'semantic-ui-react'
 
-class Login extends React.Component<RouteComponentProps<{}>> {
-  private api: Api = Api.getInstance()
+import { context as appContext } from 'context/app'
+import { context as membersContext } from 'context/members'
+import { context as usersContext } from 'context/users'
+import { context as questionsContext } from 'context/questions'
+import { context as answersContext } from 'context/answers'
+import { useRouter } from 'HookedRouter'
 
-  componentDidMount(){
-    const teamKey = this.props.match.params['key']
-    
-    let returnUrl = `#/t/${teamKey}`
+const Login: React.FC = props => {
+  const appStore = React.useContext(appContext)
+  const membersStore = React.useContext(membersContext)
+  const usersStore = React.useContext(usersContext)
+  const questionsStore = React.useContext(questionsContext)
+  const answersStore = React.useContext(answersContext)
+  const router = useRouter()
 
-    if(teamKey === null || teamKey === undefined || teamKey === ''){
-      returnUrl = '#/'
-    }
+  React.useEffect(() => {
+    const { teamKey } = router
 
-    this.api.subscribe('user', user => {
-      if(this.api.loggedIn()) return this.props.history.push(returnUrl.replace('#', ''))
+    const returnUrl = (teamKey === null || teamKey === undefined || teamKey === '')
+      ? '#/'
+      : `#/t/${teamKey}`
+
+    subscribe('user', user => {
+      if (AppApi.loggedIn()) return router.history.push(returnUrl.replace('#', ''))
     })
+    Core.getInstance().startFirebaseUi('#firebaseui', returnUrl)
+  }, [router])
 
-    this.api.startFirebaseUi('#firebaseui', returnUrl)
-  }
-
-  render() {
-    return (
-      <Grid stackable>
-        <Grid.Row>
-          <Grid.Column>
-            <Header textAlign='center' size='huge' content='Please, login!' style={{ marginTop: '3em', marginBottom: '1em' }} />
-          </Grid.Column>
-        </Grid.Row>
-        <Grid.Row columns='3'>
-          <Grid.Column />
-          <Grid.Column>
-            <div id='firebaseui'/>
-          </Grid.Column>
-          <Grid.Column />
-        </Grid.Row>
-      </Grid>
-    );
-  }
+  return (
+    <Grid stackable>
+      <Grid.Row>
+        <Grid.Column>
+          <Header textAlign='center' size='huge' content='Please, login!' style={{ marginTop: '3em', marginBottom: '1em' }} />
+        </Grid.Column>
+      </Grid.Row>
+      <Grid.Row columns='3'>
+        <Grid.Column />
+        <Grid.Column>
+          <div id='firebaseui' />
+        </Grid.Column>
+        <Grid.Column />
+      </Grid.Row>
+    </Grid>
+  );
 }
 
-export default withRouter(Login)
+export default Login

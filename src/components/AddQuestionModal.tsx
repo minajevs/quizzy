@@ -9,11 +9,9 @@ import UnitsInput from 'components/UnitsInput'
 
 import { Button, Icon, Modal, Input, Dropdown, DropdownItemProps, DropdownProps, Divider, TextArea, Form, Message, Popup } from 'semantic-ui-react'
 
-type Props = {
-    onAdd: (question: QuestionModel) => void
-    teamKey: string
-    members: MemberModel[]
-}
+import { context as membersContext } from 'context/members'
+import { context as teamContext } from 'context/team'
+import { context as questionsContext } from 'context/questions'
 
 type State = {
     open: boolean
@@ -26,7 +24,22 @@ const createDropDownOptions = (members: MemberModel[]): DropdownItemProps[] => m
     value: member.key
 }))
 
-const AddMemberModal: React.FC<Props> = props => {
+const AddQuestionModal: React.FC = props => {
+    const memberStore = React.useContext(membersContext)
+    const teamStore = React.useContext(teamContext)
+
+    const { members } = memberStore
+    const { team } = teamStore
+
+    if (members === null) return <>Members not found</>
+    if (team === null) return <>Team not found</>
+
+    const questionsStore = React.useContext(questionsContext)
+
+    const addQuestion = React.useCallback(async (question: QuestionModel) => {
+        await questionsStore.addQuestion(question)
+    }, [questionsStore.addQuestion])
+
     const [state, setState] = React.useState<State>({
         open: false,
         question: {
@@ -38,7 +51,7 @@ const AddMemberModal: React.FC<Props> = props => {
             description: '',
             units: '',
             unitsMeasure: 'free',
-            team: props.teamKey,
+            team: team.key,
         },
         validate: false
     })
@@ -63,21 +76,22 @@ const AddMemberModal: React.FC<Props> = props => {
         setState(prev => ({ ...prev, question: { ...prev.question, author: data.value as string } }))
     }, [])
     const show = React.useCallback(() => {
-        setState({ open: true, validate: false, question: { key: '', author: '', answer: null, date: new Date().getTime(), text: '', description: '', unitsMeasure: 'free', units: '', team: props.teamKey } })
-    }, [props])
+        setState({ open: true, validate: false, question: { key: '', author: '', answer: null, date: new Date().getTime(), text: '', description: '', unitsMeasure: 'free', units: '', team: team.key } })
+    }, [props, team.key])
+
     const add = React.useCallback(() => {
         const { question } = state
         if (!notEmpty(question.author) || !notEmpty(question.text))
             return setState(prev => ({ ...prev, validate: true }))
 
-        props.onAdd(state.question)
+        addQuestion(state.question)
         cancel()
     }, [state, props])
+
     const cancel = React.useCallback(() => {
         setState(prev => ({ ...prev, open: false, validate: false }))
     }, [])
 
-    const { members } = props
     const { validate } = state
 
     return (
@@ -116,4 +130,4 @@ const AddMemberModal: React.FC<Props> = props => {
     )
 }
 
-export default AddMemberModal
+export default AddQuestionModal
