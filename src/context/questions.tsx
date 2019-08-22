@@ -16,7 +16,7 @@ export const [context, Provider] = createStoreContext({
             if (data === null) return
             const questions = [...data]
 
-            const latestQuestion = meta.api.getLatestQuestion(questions)
+            const latestQuestion = meta.api.getLatestQuestion()
             setState({ questions, latestQuestion })
         })
     },

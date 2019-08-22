@@ -65,7 +65,7 @@ const EditQuestionModal: React.FC<Props> = props => {
                 <Modal.Content>
                     <label>Description <Popup trigger={<Icon name='exclamation circle' />} content='Markdown supported!' /></label>
                     <Form>
-                        <TextArea autoHeight onChange={handleTextAreaChange('description')} value={state.question.description} placeholder='1 drink is too few and 3 drinks is too many.' />
+                        <TextArea onChange={handleTextAreaChange('description')} value={state.question.description} placeholder='1 drink is too few and 3 drinks is too many.' />
                     </Form>
                     <Form>
                         <Form.Group>

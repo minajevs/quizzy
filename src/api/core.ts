@@ -5,6 +5,7 @@ import 'firebase/database'
 import Team from 'models/team'
 import Member from 'models/member'
 import Question from 'models/question'
+import Answers from 'models/answers'
 import Answer from 'models/answer'
 import User from 'models/user'
 import Result from 'models/result'
@@ -34,8 +35,19 @@ type Domain = {
     team: Team | null,
     members: readonly Member[] | null,
     questions: readonly Question[] | null,
-    answers: readonly Answer[] | null
+    answers: readonly Answers[] | null
 }
+
+type KeyTeamLike = {
+    key: string | null,
+    team: string
+}
+
+type SingleOfArray<T extends readonly any[] | any | null> = T extends Readonly<Array<infer P>>
+    ? P
+    : T extends null
+    ? never
+    : T
 
 export default class Core {
     // Api is a singleton service in this case
@@ -108,6 +120,15 @@ export default class Core {
     }
 
     // Utils
+    public generateKey = () => {
+        if (!this.validRequest()) throw new Error('Invalid Request')
+
+        const key = this.database.ref('id-generator').push().key
+        if (key === null) throw new Error('Could not generate a key')
+
+        return key
+    }
+
     public setData = async <T extends { key: string }>(table: string, data: T) => {
         if (!this.validRequest())
             return
@@ -115,42 +136,21 @@ export default class Core {
         return this.database.ref(`${table}/${data.key}`).set(data)
     }
 
-    public create = <T extends {
-        key: string | null,
-        team: string
-    }>(path: keyof Domain, value: T) => {
+    public create = <K extends keyof Domain, T extends Domain[K]>(path: K, value: SingleOfArray<T> & KeyTeamLike) => {
         if (!this.validRequest())
             return
 
         return this.database.ref(path).child(value.team).push(value)
     }
 
-    public createBatch = <T extends {
-        key: string | null,
-        team: string
-    }>(path: keyof Domain, value: T) => {
-        if (!this.validRequest())
-            return
-
-        this.database.ref(path).
-
-        return this.database.ref(path).child(value.team).push(value)
-    }
-
-    public update = <T extends {
-        key: string | null,
-        team: string
-    }>(path: keyof Domain, value: T) => {
+    public update = <K extends keyof Domain, T extends Domain[K]>(path: K, value: SingleOfArray<T> & KeyTeamLike) => {
         if (!this.validRequest())
             return
 
         return this.database.ref(`${path}/${value.team}/${value.key}`).set(value)
     }
 
-    public createOrUpdate = <T extends {
-        key: string | null,
-        team: string
-    }>(path: keyof Domain, value: T) => {
+    public createOrUpdate = <K extends keyof Domain, T extends Domain[K]>(path: K, value: SingleOfArray<T> & KeyTeamLike) => {
         if (value.key === null || value.key === '')
             return this.create(path, value)
 

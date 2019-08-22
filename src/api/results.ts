@@ -1,13 +1,13 @@
 import Result from 'models/result'
 import Member from 'models/member'
 import Question from 'models/question'
-import Answer from 'models/answer'
+import Answers from 'models/answers'
 
-const getResults = (question: Question, answers: Answer[], members: Member[]) => {
+const getResults = (question: Question, answers: Answers, members: Member[]) => {
     if (question.units === 'manual')
         return []
 
-    const results: Result[] = answers.map(answer => {
+    const results: Result[] = answers.answers.map(answer => {
         const member = members.find(x => x.key === answer.author) || { name: `ERR: Can't find member with id` } as Member
 
         if (!answer.shouldAnswer)

@@ -1,6 +1,8 @@
 import Answer from 'models/answer'
 
-class Answers {
+export default class Answers {
+    key: string
+    team: string
     questionKey: string
     answers: Answer[]
 }

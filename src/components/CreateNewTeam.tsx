@@ -31,8 +31,6 @@ const CreateNewTeam: React.FC<Props> = props => {
             return setState(prev => ({ ...prev, validate: true }))
 
         await store.createTeam(teamKey, teamName)
-        router.history.push(`t/${teamKey}`)
-
     }, [state.teamKey, state.teamName])
 
     const handleChange = React.useCallback((field: keyof State) => (event: React.ChangeEvent<HTMLInputElement>) => {

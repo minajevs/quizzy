@@ -32,7 +32,7 @@ const ViewQuestionModal: React.FC<Props> = ({ open, onClose, onEdit, question })
     if (members === null) return <>Members not found!</>
 
     let results = null
-    if (question.answer !== null && question.answer !== undefined) {
+    if (answers !== null && question.answer !== null && question.answer !== undefined) {
         results = getResults(question, answers, members)
     }
     return (

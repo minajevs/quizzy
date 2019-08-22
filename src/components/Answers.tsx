@@ -1,5 +1,6 @@
 import * as React from 'react'
 import AnswerModel from 'models/answer'
+import AnswersModel from 'models/answers'
 import QuestionModel from 'models/question'
 import MemberModel from 'models/member'
 import UserModel from 'models/user'
@@ -63,26 +64,25 @@ const Answers: React.FC<{
   members: MemberModel[],
   latestQuestion: QuestionModel,
   currentUser: UserModel,
-  answers: AnswerModel[],
+  answers: AnswersModel | null,
   currentMember: MemberModel | undefined
 }> = ({ members, latestQuestion, currentUser, answers, currentMember }) => {
   const questionAuthorMember = React.useMemo(() => members.find(x => x.key === latestQuestion.author), [members, latestQuestion.author])
   const isQuestionAuthor = React.useMemo(() => (questionAuthorMember !== undefined && currentUser.key === questionAuthorMember.user), [questionAuthorMember, currentUser])
-  console.log(latestQuestion.answer)
-  const mapAnswers = React.useMemo(() => answers
+  const mapAnswers = React.useMemo(() => answers && answers.answers
     .filter(x => isQuestionAuthor || (currentMember !== undefined && x.author === currentMember.key))
-    .map(answer =>
+    .map((answer, index) =>
       answer.author === latestQuestion.author
         ? null
         : <AnswerComponent
           type={latestQuestion.unitsMeasure}
           answer={answer}
           units={latestQuestion.units}
-          key={answer.key}
+          key={index}
           answersClosed={latestQuestion.answer !== null && latestQuestion.answer !== undefined}
         />), [answers, latestQuestion, members, isQuestionAuthor, currentMember])
 
-  if (latestQuestion.answer !== null && latestQuestion.answer !== undefined) {
+  if (answers !== null && latestQuestion.answer !== null && latestQuestion.answer !== undefined) {
     const results = getResults(latestQuestion, answers, members)
     return <ResultsComponent
       question={latestQuestion}

@@ -31,6 +31,7 @@ const Team: React.FC<React.PropsWithChildren<{}>> = ({ children }) => {
   // Actually start loading data for given url
   async function loadData() {
     const result = await appStore.verifyUrlAndLoad()
+    console.log(result)
     setShouldRender(result)
   }
 
@@ -48,7 +49,6 @@ const Team: React.FC<React.PropsWithChildren<{}>> = ({ children }) => {
     })
 
     return () => {
-      console.log('CANCEl')
       didCancel = true
     }
   }, [])

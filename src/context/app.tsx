@@ -10,10 +10,12 @@ export const [context, Provider] = createStoreContext({
     shouldValidate: false,
 }, ({ state, setState, meta, stores }) => ({
     validate: () => setState(prev => ({ ...prev, shouldValidate: true })),
-    createTeam: (teamKey: string, teamName: string) => meta.api.createTeam({
-        key: teamKey,
-        name: teamName
-    }),
+    createTeam: async (teamKey: string, teamName: string) => {
+        await meta.api.createTeam({
+            key: teamKey,
+            name: teamName
+        })
+    },
     logOut: () => meta.api.logOut(),
     currentMember: () => {
         const { currentUser } = stores.users

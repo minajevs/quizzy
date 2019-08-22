@@ -10,6 +10,7 @@ import User from 'models/user'
 import Result from 'models/result'
 
 import getResults from 'api/results'
+import Answers from 'models/answers'
 
 const core = () => Core.getInstance()
 
@@ -49,34 +50,54 @@ export const MembersApi = {
 }
 
 export const AnswersApi = {
-    save: async (answer: Answer) => core().createOrUpdate('answers', answer),
+    save: async (answers: Answers) => {
+        core().createOrUpdate('answers', answers)
+    },
     getForQuestion: (questionKey: string) => {
         const { answers } = core().state
 
-        if (answers === null) return []
+        if (answers === null) return null
 
-        const questionAnswers = answers.filter(x => x.question === questionKey)
-        if (questionAnswers === undefined) return []
+        const questionAnswers = answers.find(x => x.questionKey === questionKey)
+        if (questionAnswers === undefined) return null
 
         return questionAnswers
+    },
+    latestAnswers: () => {
+        const latestQuestion = QuestionsApi.getLatestQuestion()
+        if (latestQuestion === null) return null
+
+        return AnswersApi.getForQuestion(latestQuestion.key)
+    },
+    addAnswer: async (answer: Answer) => {
+        const latestAnswers = AnswersApi.latestAnswers()
+        if (latestAnswers === null) return
+
+        const { answers } = latestAnswers
+
+        const newAnswers = answers.map(x => x.key === answer.key ? { ...answer } : x)
+
+        AnswersApi.save({ ...latestAnswers, answers: newAnswers })
     },
     createEmptyAnswers: async (teamKey: string, questionKey: string) => {
         const { members } = core().state
         if (members === null) return
 
-        const promises = members.map(member => {
-            const answer = {
+        const answers: Answers = {
+            key: '',
+            team: teamKey,
+            questionKey,
+            answers: members.map(member => ({
                 answer: null,
                 author: member.key,
                 question: questionKey,
                 team: teamKey,
                 shouldAnswer: true,
-                key: ''
-            }
-            return AnswersApi.save(answer)
-        })
+                key: core().generateKey()
+            }))
+        }
 
-        return Promise.all(promises)
+        return AnswersApi.save(answers)
     }
 }
 
@@ -98,11 +119,12 @@ export const QuestionsApi = {
 
         // Question exists
         if (existingQuestion !== undefined) {
-            if (existingQuestion.answer !== null) {
+            const questionAnswers = AnswersApi.getForQuestion(existingQuestion.key)
+            if (questionAnswers !== null && existingQuestion.answer !== null) {
                 // If answer existed, first remove points for scores, because we will calculate a new ones
                 const previousResult = getResults(
                     existingQuestion,
-                    AnswersApi.getForQuestion(existingQuestion.key),
+                    questionAnswers,
                     [...members])
 
                 const promises = previousResult.map(x =>
@@ -116,10 +138,11 @@ export const QuestionsApi = {
         await core().createOrUpdate('questions', question)
 
         // Update scores if answer is there
-        if (question.answer !== null) {
+        const answers = AnswersApi.getForQuestion(question.key)
+        if (answers !== null && question.answer !== null) {
             const results = getResults(
                 question,
-                AnswersApi.getForQuestion(question.key),
+                answers,
                 [...members]
             )
 
@@ -127,8 +150,10 @@ export const QuestionsApi = {
             await Promise.all(promises)
         }
     },
-    getLatestQuestion: (questions: Question[]): Question | null => {
-        return questions
+    getLatestQuestion: (): Question | null => {
+        const { questions } = core().state
+        if (questions === null) return null
+        return [...questions]
             .sort((a, b) => moment(b.date).diff(moment(a.date)))[0] || null
     }
 }
