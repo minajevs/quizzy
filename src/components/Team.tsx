@@ -18,58 +18,17 @@ import { context as answersContext } from 'context/answers'
 import { context as appContext } from 'context/app'
 
 const Team: React.FC<React.PropsWithChildren<{}>> = ({ children }) => {
-  const membersStore = React.useContext(membersContext)
   const teamStore = React.useContext(teamContext)
-  const questionsStore = React.useContext(questionsContext)
-  const answersStore = React.useContext(answersContext)
-  const appStore = React.useContext(appContext)
 
-  const router = useRouter()
+  const { team } = teamStore
 
-  const [shouldRender, setShouldRender] = React.useState<boolean | null>(null)
-
-  // Actually start loading data for given url
-  async function loadData() {
-    const result = await appStore.verifyUrlAndLoad()
-    console.log(result)
-    setShouldRender(result)
-  }
-
-  React.useEffect(() => {
-    let didCancel = false
-    // On first open of the team hook up all updates
-    teamStore.init()
-    membersStore.init()
-    questionsStore.init()
-    answersStore.init()
-
-    appStore.verifyUrlAndLoad().then(res => {
-      if (didCancel) return
-      setShouldRender(res)
-    })
-
-    return () => {
-      didCancel = true
-    }
-  }, [])
-
-  const { team, teamNotFound } = teamStore
-
-  if (shouldRender === null || !shouldRender) {
-    return Loading('app')
-  }
-
-  if (teamNotFound)
-    return TeamNotFound(router.teamKey!)
-
-  if (team === null)
-    return Loading('team')
+  if (team === null) return Loading('team')
 
   return (
     <Grid stackable>
       <Grid.Row>
         <Grid.Column>
-          <Header textAlign='center' size='huge' content={team.name} style={{ marginTop: '3em', marginBottom: '1em' }} />
+          <Header textAlign='center' size='huge' content={team!.name} style={{ marginTop: '3em', marginBottom: '1em' }} />
           <Loader active={teamStore.loading} size='small' />
         </Grid.Column>
       </Grid.Row>

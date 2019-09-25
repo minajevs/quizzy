@@ -8,10 +8,12 @@ import { context as teamContext } from 'context/team'
 import MemberModel from 'models/member'
 
 export const [context, Provider] = createStoreContext({
-    members: [] as MemberModel[] | null
-}, ({ setState, meta, stores }) => ({
+    members: null as MemberModel[] | null,
+    initialized: false
+}, ({ setState, meta, stores, state }) => ({
     init: () => {
-        subscribe('members', members => setState({ members: members && [...members] }))
+        if (state.initialized) return
+        subscribe('members', members => setState(prev => ({ ...prev, members: members && [...members], initialized: true })))
     },
     addMember: async (member: MemberModel) => {
         stores.team.setLoading(true)

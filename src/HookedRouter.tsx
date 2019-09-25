@@ -7,7 +7,8 @@ import {
 import { RouteChildrenProps } from "react-router"
 
 type RouterProps = RouteChildrenProps<{}> & {
-    teamKey: string | null
+    teamKey: string | null,
+    currentPage: 'other' | 'login' | 'team'
 }
 
 const RouterContext = React.createContext({} as RouterProps)
@@ -22,9 +23,10 @@ export const HookedBrowserRouter: React.FC = ({ children }) => (
                     ? split[2]
                     : null
 
-                console.log(split)
+                const currentPage = split[1] === 't' ? 'team' : split[1] === 'l' ? 'login' : 'other'
+
                 return (
-                    <RouterContext.Provider value={{ ...routeProps, teamKey }}>
+                    <RouterContext.Provider value={{ ...routeProps, teamKey, currentPage }}>
                         {children}
                     </RouterContext.Provider>
                 )

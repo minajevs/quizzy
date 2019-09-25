@@ -10,10 +10,12 @@ import { context as routerContext } from 'HookedRouter'
 export const [context, Provider] = createStoreContext({
     loading: false,
     team: null as TeamModel | null,
-    teamNotFound: false
-}, ({ setState, meta, stores }) => ({
+    teamNotFound: false,
+    initialized: false
+}, ({ setState, meta, stores, state }) => ({
     init: () => {
-        subscribe('team', team => setState(prev => ({ ...prev, team, teamNotFound: team === null })))
+        if (state.initialized) return
+        subscribe('team', team => setState(prev => ({ ...prev, team, teamNotFound: team === null, initialized: true })))
     },
     createTeam: async (teamKey: string, teamName: string) => {
         await meta.api.createTeam({

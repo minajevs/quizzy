@@ -9,15 +9,17 @@ import QuestionModel from 'models/question'
 
 export const [context, Provider] = createStoreContext({
     questions: null as QuestionModel[] | null,
-    latestQuestion: null as QuestionModel | null
-}, ({ setState, meta, stores }) => ({
+    latestQuestion: null as QuestionModel | null,
+    initialized: false
+}, ({ setState, meta, stores, state }) => ({
     init: () => {
+        if (state.initialized) return
         subscribe('questions', data => {
             if (data === null) return
             const questions = [...data]
 
             const latestQuestion = meta.api.getLatestQuestion()
-            setState({ questions, latestQuestion })
+            setState(prev => ({ ...prev, questions, latestQuestion, initialized: true }))
         })
     },
     addQuestion: async (question: QuestionModel) => {

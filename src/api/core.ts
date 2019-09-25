@@ -74,6 +74,20 @@ export default class Core {
         answers: null
     }
 
+    private binds: {
+        teams: boolean,
+        members: boolean,
+        users: boolean,
+        questions: boolean,
+        answers: boolean
+    } = {
+            teams: false,
+            members: false,
+            users: false,
+            questions: false,
+            answers: false
+        }
+
     get state(): Domain {
         return this.internalState
     }
@@ -88,6 +102,7 @@ export default class Core {
 
         firebase.auth().setPersistence(firebase.auth.Auth.Persistence.LOCAL)
         firebase.auth().onAuthStateChanged(user => {
+            console.log('authChanged', user)
             const mappedUser = mapUser(user)
             if (mappedUser !== null) this.updateUser(mappedUser)
             this.emit('user', mappedUser)
@@ -158,12 +173,22 @@ export default class Core {
     }
 
     public bindTeam = async (teamKey: string) => {
+        const safeBind = async (item: string, bind: () => void) => {
+            if (this.binds[item]) {
+                console.log(`[${item}]: Can't bind same item more than once!`)
+                return
+            }
+
+            await bind()
+
+            this.binds[item] = true
+        }
         // should load in that particular sequence. Can't do promise.all
-        await this.bind(`teams/${teamKey}`, 'team')
-        await this.bind(`members/${teamKey}`, 'members', firebaseArrayBinder)
-        await this.bind(`users`, 'users', firebaseArrayBinder)
-        await this.bind(`questions/${teamKey}`, 'questions', firebaseArrayBinder)
-        await this.bind(`answers/${teamKey}`, 'answers', firebaseArrayBinder)
+        await safeBind('team', () => this.bind(`teams/${teamKey}`, 'team'))
+        await safeBind('members', () => this.bind(`members/${teamKey}`, 'members', firebaseArrayBinder))
+        await safeBind('users', () => this.bind(`users`, 'users', firebaseArrayBinder))
+        await safeBind('questions', () => this.bind(`questions/${teamKey}`, 'questions', firebaseArrayBinder))
+        await safeBind('answers', () => this.bind(`answers/${teamKey}`, 'answers', firebaseArrayBinder))
 
         console.log('finished binding stuff')
     }

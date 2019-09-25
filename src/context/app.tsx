@@ -22,29 +22,15 @@ export const [context, Provider] = createStoreContext({
         const { members } = stores.members
 
         if (currentUser === null) return null
+        if (members === null) return null
 
-        const currentMember = members!.find(member => member.user === currentUser.key)
+        const currentMember = members.find(member => member.user === currentUser.key)
 
         return currentMember !== undefined ? currentMember : null
     },
-    verifyUrlAndLoad: async () => {
-        const { router } = stores
+    load: async (teamKey: string): Promise<void> => {
         const { api } = meta
-        const { teamKey } = router
-
-        // Check if 
-        if (teamKey === null || teamKey === undefined || teamKey === '') {
-            router.history.push(`/`)
-            return false
-        }
-
-        if (!api.loggedIn()) {
-            router.history.push(`/l/${teamKey}`)
-            return false
-        }
-
-        await api.load(teamKey)
-        return true
+        return await api.load(teamKey)
     }
 }), {
     contexts: { users: usersContext, members: membersContext, router: routerContext },

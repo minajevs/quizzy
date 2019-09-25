@@ -28,10 +28,11 @@ const Main = () => (
                 <Auth>
                     <PageHeader />
                     <Route exact={true} path='/' component={App} />
-                    <Route path='/t/:key' component={Team} />
                     <Route exact={true} path='/l' component={Login} />
                     <Route path='/l/:key' component={Login} />
                     <Route exact={true} path='/np' component={NoPermission} />
+
+                    <Route path='/t/:key' component={Team} />
                 </Auth>
             </CombineProviders>
         </HookedBrowserRouter>

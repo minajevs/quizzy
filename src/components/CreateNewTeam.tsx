@@ -25,6 +25,7 @@ const CreateNewTeam: React.FC<Props> = props => {
     const notEmpty = React.useCallback((value: string) => (value !== ''), [])
 
     const onAddTeam = React.useCallback(async () => {
+        console.log('cret')
         const { teamKey, teamName } = state
 
         if (!notEmpty(teamKey) || !notEmpty(teamName))
