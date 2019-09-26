@@ -12,6 +12,8 @@ import Result from 'models/result'
 
 import { EventEmitter } from 'events'
 
+// cypress@example.com GKUg@v7keDDmqv6
+
 const config = {
     apiKey: "AIzaSyBxqTkwT_BM87TefrBgGL5DqIFdnGPupr4",
     authDomain: "quizzy-2ba94.firebaseapp.com",
@@ -24,7 +26,8 @@ const config = {
 const authConfig: firebaseui.auth.Config = {
     signInSuccessUrl: 'l',
     signInOptions: [
-        firebase.auth.GoogleAuthProvider.PROVIDER_ID
+        firebase.auth.GoogleAuthProvider.PROVIDER_ID,
+        firebase.auth.EmailAuthProvider.PROVIDER_ID
     ],
     tosUrl: '/tos'
 }

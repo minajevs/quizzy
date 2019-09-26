@@ -48,7 +48,8 @@ const App: React.FC = props => {
                                 placeholder='Team id'
                                 onChange={handleChange}
                                 onKeyPress={onKeyPress('Enter', () => join(teamId))}
-                                action={{ color: 'teal', labelPosition: 'right', icon: 'angle double right', content: 'Join', onClick: () => join(teamId) }}
+                                action={{ color: 'teal', labelPosition: 'right', icon: 'angle double right', content: 'Join', onClick: () => join(teamId), "data-test": 'join' }}
+                                data-test='join-team-id'
                             />
                             <Validation value={teamId} error='Please enter an id!' rule={notEmpty} validate={store.shouldValidate} />
                             {usersStore.currentUser === null

@@ -18,11 +18,11 @@ const PageHeader: React.FC = props => {
     const getHeader = React.useCallback(() => (usersStore.currentUser === null
         ? <>
             Not logged in
-            <Button basic style={{ margin: '0 1em' }} onClick={requestLogIn}>Login</Button>
+            <Button basic style={{ margin: '0 1em' }} data-test="login" onClick={requestLogIn}>Login</Button>
         </>
         : <>
             Logged in as {usersStore.currentUser.name}
-            <Button basic style={{ margin: '0 1em' }} onClick={appStore.logOut}>Logout</Button>
+            <Button basic style={{ margin: '0 1em' }} data-test="logout" onClick={appStore.logOut}>Logout</Button>
         </>), [usersStore.currentUser])
 
     return (

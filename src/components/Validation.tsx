@@ -11,7 +11,7 @@ type Props = {
 const Validation: React.FC<Props> = ({ error, value, rule, validate }) => {
     const shouldValidate = validate === undefined ? true : validate
     return (
-        <Message hidden={!shouldValidate || rule(value)} attached='bottom' content={error} error />
+        <Message hidden={!shouldValidate || rule(value)} attached='bottom' content={error} error data-test="validation-error" />
     )
 }
 
