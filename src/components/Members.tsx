@@ -34,7 +34,7 @@ const Members: React.FC = props => {
     return Loading('users')
 
   return (
-    <Container>
+    <Container data-test='member-section'>
       <Segment>
         <List divided={true} selection={true} verticalAlign='middle'>
           {membersStore.members

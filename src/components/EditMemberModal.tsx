@@ -50,7 +50,7 @@ const EditMemberModal: React.FC<Props> = props => {
             return (
                 <>
                     <Popup trigger={<Icon name="question circle outline" />} content='Only user with that email will be allowed to a team' />
-                    <Input fluid onChange={handleChange('inviteEmail')} placeholder='john@example.com' type='text' value={state.member.inviteEmail} onKeyPress={onKeyPress('Enter', save)} />
+                    <Input fluid onChange={handleChange('inviteEmail')} placeholder='john@example.com' type='text' value={state.member.inviteEmail} onKeyPress={onKeyPress('Enter', save)} data-test='edit-member-email' />
                 </>
             )
         } else {
@@ -72,7 +72,7 @@ const EditMemberModal: React.FC<Props> = props => {
                 <Modal.Header>Edit "{member.name}"</Modal.Header>
                 <Modal.Content>
                     <label>Member name</label>
-                    <Input onChange={handleChange('name')} value={member.name} fluid type='text' onKeyPress={onKeyPress('Enter', save)} />
+                    <Input onChange={handleChange('name')} value={member.name} fluid type='text' onKeyPress={onKeyPress('Enter', save)} data-test='edit-member-name' />
                     <Validation value={member.name} error="Member name can't be empty!" rule={notEmpty} validate={validate} />
                     <label>Email</label>
                     {emailField}
@@ -80,7 +80,7 @@ const EditMemberModal: React.FC<Props> = props => {
                 <Modal.Actions>
                     <Button onClick={onClose}>Cancel</Button>
                     <Button negative disabled onClick={onClose} icon='delete' labelPosition='right' content='Remove' />
-                    <Button positive onClick={save} icon='save' labelPosition='right' content='Save' />
+                    <Button positive onClick={save} icon='save' labelPosition='right' content='Save' data-test='save-member' />
                 </Modal.Actions>
             </Modal>
         </>

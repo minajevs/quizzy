@@ -5,7 +5,10 @@ var firebase = require('firebase')
 const settings = {
     teamKey: 'cypress-test-team',
     teamName: 'TEST TEAM',
-    nonExistingTeamKey: 'cypress-non-existing-team'
+    nonExistingTeamKey: 'cypress-non-existing-team',
+
+    // members
+    newUserNameAndEmail: ['New User 1', 'email@example.com'],
 }
 
 const config = {
@@ -17,9 +20,10 @@ const config = {
     messagingSenderId: "998358783561"
 }
 
+const app = firebase.initializeApp(config)
+const database = app.database()
+
 const clearDb = () => {
-    const app = firebase.initializeApp(config)
-    const database = app.database()
     database.ref(`teams/${settings.teamKey}`).remove()
     database.ref(`members/${settings.teamKey}`).remove()
     database.ref(`answers/${settings.teamKey}`).remove()
@@ -61,21 +65,21 @@ describe('The Main Page', () => {
         cy.contains('New team name')
 
         // Check validations
-        cy.get('[data-test=validation-error]').each(x => cy.wrap(x).should('not.be.visible'))
+        cy.getTest('validation-error').each(x => cy.wrap(x).should('not.be.visible'))
 
-        cy.get('[data-test=create]').click()
+        cy.getTest('create').click()
 
-        cy.get('[data-test=validation-error]').within(() => {
+        cy.getTest('validation-error').within(() => {
             cy.contains('Key can\'t be empty!').should('be.visible')
             cy.contains('Name can\'t be empty!').should('be.visible')
         })
 
         // Check create operation
-        cy.get('[data-test=new-team-id] input').type(settings.teamKey)
-        cy.get('[data-test=new-team-name] input').type(settings.teamName)
-        cy.get('[data-test=validation-error]').each(x => cy.wrap(x).should('not.be.visible'))
+        cy.getTestInput('new-team-id').type(settings.teamKey)
+        cy.getTestInput('new-team-name').type(settings.teamName)
+        cy.getTest('validation-error').each(x => cy.wrap(x).should('not.be.visible'))
 
-        cy.get('[data-test=create]').click()
+        cy.getTest('create').click()
 
         cy.contains(settings.teamName)
         cy.contains('No questions yet')
@@ -89,19 +93,19 @@ describe('The Main Page', () => {
         cy.contains('Enter yours team id')
 
         // Check validations
-        cy.get('[data-test=validation-error]').each(x => cy.wrap(x).should('not.be.visible'))
+        cy.getTest('validation-error').each(x => cy.wrap(x).should('not.be.visible'))
 
-        cy.get('[data-test=join]').click()
+        cy.getTest('join').click()
 
-        cy.get('[data-test=validation-error]').within(() => {
+        cy.getTest('validation-error').within(() => {
             cy.contains('Please enter an id!').should('be.visible')
         })
 
         // Check join operation
-        cy.get('[data-test=join-team-id] input').type(settings.teamKey)
-        cy.get('[data-test=validation-error]').each(x => cy.wrap(x).should('not.be.visible'))
+        cy.getTestInput('join-team-id').type(settings.teamKey)
+        cy.getTest('validation-error').each(x => cy.wrap(x).should('not.be.visible'))
 
-        cy.get('[data-test=join]').click()
+        cy.getTest('join').click()
 
         cy.contains(settings.teamName)
         cy.contains('No questions yet')
@@ -118,8 +122,8 @@ describe('The Main Page', () => {
         cy.contains('Welcome!', { timeout: 5000 })
         cy.contains('Enter yours team id')
 
-        cy.get('[data-test=join-team-id] input').type(settings.nonExistingTeamKey)
-        cy.get('[data-test=join]').click()
+        cy.getTestInput('join-team-id').type(settings.nonExistingTeamKey)
+        cy.getTest('join').click()
 
         cy.contains(`Team with key '${settings.nonExistingTeamKey}' was not found!`)
     })
@@ -130,3 +134,73 @@ describe('The Main Page', () => {
     })
 })
 
+describe('The Team Page', () => {
+    before(() => {
+        // clear db
+        clearDb()
+        // init a team
+        cy.visit('/')
+        cy.contains('Welcome!', { timeout: 5000 })
+        cy.login()
+
+        cy.getTestInput('new-team-id').type(settings.teamKey)
+        cy.getTestInput('new-team-name').type(settings.teamName)
+        cy.getTest('create').click()
+    })
+
+    beforeEach(() => {
+        cy.visit(`/t/${settings.teamKey}`)
+        cy.contains(settings.teamName, { timeout: 5000 })
+    })
+
+    describe('Members', () => {
+        it('Can add a new member', () => {
+            cy.contains('Add member').click()
+            cy.contains('New member')
+
+            // Check validations
+            cy.getTest('validation-error').each(x => cy.wrap(x).should('not.be.visible'))
+
+            cy.getTest('add-member').click()
+
+            cy.getTest('validation-error').within(() => {
+                cy.contains('Member name can\'t be empty!').should('be.visible')
+            })
+
+            // Actually check creation
+            cy.getTestInput('add-member-name').type(settings.newUserNameAndEmail[0])
+            cy.getTestInput('add-member-email').type(settings.newUserNameAndEmail[1])
+
+            cy.getTest('add-member').click()
+
+            // Verify
+            cy.getTest('member-section').contains(settings.newUserNameAndEmail[0])
+        })
+
+        it('Can edit a member', () => {
+            cy.contains(settings.newUserNameAndEmail[0]).click()
+            cy.contains('Edit')
+
+            // Check validations
+            cy.getTest('validation-error').each(x => cy.wrap(x).should('not.be.visible'))
+
+            cy.getTestInput('edit-member-name').clear()
+            cy.getTestInput('edit-member-email').clear()
+
+            cy.getTest('save-member').click()
+
+            cy.getTest('validation-error').within(() => {
+                cy.contains('Member name can\'t be empty!').should('be.visible')
+            })
+
+            // Actually check creation
+            cy.getTestInput('edit-member-name').type(settings.newUserNameAndEmail[0] + ' new')
+            cy.getTestInput('edit-member-email').type(settings.newUserNameAndEmail[1] + ' new')
+
+            cy.getTest('save-member').click()
+
+            // Verify
+            cy.getTest('member-section').contains(settings.newUserNameAndEmail[0] + ' new')
+        })
+    })
+})

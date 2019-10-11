@@ -60,15 +60,15 @@ const AddMemberModal: React.FC = props => {
                 <Modal.Header>New member</Modal.Header>
                 <Modal.Content>
                     <label>Member name</label>
-                    <Input fluid onChange={handleChange('name')} placeholder='John Doe' type='text' onKeyPress={onKeyPress('Enter', add)} />
+                    <Input fluid onChange={handleChange('name')} placeholder='John Doe' type='text' onKeyPress={onKeyPress('Enter', add)} data-test='add-member-name' />
                     <Validation value={state.member.name} error="Member name can't be empty!" rule={notEmpty} validate={state.validate} />
                     <label>Email</label>
                     <Popup trigger={<Icon name="question circle outline" />} content='Only user with that email will be allowed to a team' />
-                    <Input fluid onChange={handleChange('inviteEmail')} placeholder='john@example.com' type='text' onKeyPress={onKeyPress('Enter', add)} />
+                    <Input fluid onChange={handleChange('inviteEmail')} placeholder='john@example.com' type='text' onKeyPress={onKeyPress('Enter', add)} data-test='add-member-email' />
                 </Modal.Content>
                 <Modal.Actions>
                     <Button negative onClick={cancel}>Cancel</Button>
-                    <Button positive onClick={add} icon='add' labelPosition='right' content='Add' />
+                    <Button positive onClick={add} icon='add' labelPosition='right' content='Add' data-test='add-member' />
                 </Modal.Actions>
             </Modal>
         </>

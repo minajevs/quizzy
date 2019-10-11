@@ -30,5 +30,15 @@ function login() {
     cy.contains('Logged in', { timeout: 5000 })
 }
 
+function getTest(selector) {
+    return cy.get(`[data-test="${selector}"]`)
+}
+
+function getTestInput(selector) {
+    return cy.get(`[data-test="${selector}"] input`)
+}
+
 Cypress.Commands.add('logout', logout)
 Cypress.Commands.add('login', login)
+Cypress.Commands.add('getTest', getTest)
+Cypress.Commands.add('getTestInput', getTestInput)

@@ -29,5 +29,7 @@ declare namespace Cypress {
     interface Chainable {
         logout: () => void;
         login: () => void;
+        getTest: typeof cy.get;
+        getTestInput: typeof cy.get;
     }
 }
