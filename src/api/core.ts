@@ -147,6 +147,15 @@ export default class Core {
         return key
     }
 
+    public getData = async <T>(path: string, customBinder: (snap: firebase.database.DataSnapshot | null) => T = (snap) => snap !== null ? snap.val() : null) => {
+        if (!this.validRequest())
+            return
+
+        const snapshot = await this.database.ref(path).once('value')
+
+        return customBinder(snapshot)
+    }
+
     public setData = async <T extends { key: string }>(table: string, data: T) => {
         if (!this.validRequest())
             return
@@ -240,7 +249,7 @@ const mapUser = (user: firebase.User | null): User | null => {
     return internalUser
 }
 
-const firebaseArrayBinder = (snap: firebase.database.DataSnapshot | null) => snap !== null
+export const firebaseArrayBinder = (snap: firebase.database.DataSnapshot | null) => snap !== null
     ? arrayBinder(snap.val())
     : null
 

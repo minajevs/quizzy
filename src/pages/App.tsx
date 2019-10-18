@@ -7,6 +7,7 @@ import { useRouter } from 'HookedRouter'
 import { Grid, Container, Button, Icon, Modal, Input, Label, Dropdown, DropdownItemProps, DropdownProps, Segment, Header } from 'semantic-ui-react'
 import CreateNewTeam from 'components/CreateNewTeam';
 import Validation from 'components/Validation';
+import AvailableTeams from 'components/AvailableTeams'
 
 const App: React.FC = props => {
     const store = React.useContext(appContext)
@@ -59,6 +60,8 @@ const App: React.FC = props => {
                                 : <>
                                     <Header> Or create a new team: </Header>
                                     <CreateNewTeam />
+                                    <Header>Your teams:</Header>
+                                    <AvailableTeams />
                                 </>}
                         </Segment>
                     </Container>

@@ -85,6 +85,15 @@ describe('The Main Page', () => {
         cy.contains('No questions yet')
     })
 
+    it('Can see a team in available team list', () => {
+        cy.visit('/')
+        cy.contains('Welcome!', { timeout: 5000 })
+        cy.login()
+
+        cy.contains('Your teams:')
+        cy.contains(settings.teamName, { timeout: 5000 })
+    })
+
     it('Can join a team', () => {
         cy.visit('/')
         cy.contains('Welcome!', { timeout: 5000 })
@@ -113,6 +122,18 @@ describe('The Main Page', () => {
 
     it('Can join a team by URL', () => {
         cy.visit(`/t/${settings.teamKey}`)
+        cy.contains(settings.teamName, { timeout: 5000 })
+        cy.contains('No questions yet', { timeout: 5000 })
+    })
+
+    it('Can join a team by clicking URL on frontpage', () => {
+        cy.visit('/')
+        cy.contains('Welcome!', { timeout: 5000 })
+        cy.login()
+
+        cy.contains('Your teams:')
+        cy.contains(settings.teamName, { timeout: 5000 }).click()
+
         cy.contains(settings.teamName, { timeout: 5000 })
         cy.contains('No questions yet', { timeout: 5000 })
     })

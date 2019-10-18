@@ -1,6 +1,6 @@
 import * as moment from 'moment'
 
-import Core from 'api/core'
+import Core, { firebaseArrayBinder } from 'api/core'
 
 import Team from 'models/team'
 import Member from 'models/member'
@@ -21,6 +21,12 @@ export const AppApi = {
     currentUser: () => core().state.user,
     logOut: core().logOut,
     load: core().bindTeam,
+    getAllTeams: async () => {
+        const teams = core().getData<Team[] | null>('teams', firebaseArrayBinder)
+        if (teams === null || teams === undefined) return null
+
+        return teams
+    },
     saveUser: async (user: User) => {
         return core().setData("users", user)
     },
@@ -46,7 +52,8 @@ export const AppApi = {
 }
 
 export const MembersApi = {
-    save: async (member: Member) => core().createOrUpdate('members', member)
+    save: async (member: Member) => core().createOrUpdate('members', member),
+    getTeamMembers: (teamKey: string) => core().getData<Member[] | null>(`members/${teamKey}`, firebaseArrayBinder)
 }
 
 export const AnswersApi = {

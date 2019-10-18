@@ -4,7 +4,7 @@ import createStoreContext from 'react-concise-state'
 import { context as membersContext } from 'context/members'
 import { context as usersContext } from 'context/users'
 import { context as routerContext } from 'HookedRouter'
-import { AppApi } from 'api'
+import { AppApi, MembersApi } from 'api'
 
 export const [context, Provider] = createStoreContext({
     shouldValidate: false,
@@ -17,6 +17,24 @@ export const [context, Provider] = createStoreContext({
         })
     },
     logOut: () => meta.api.logOut(),
+    availableTeams: async () => {
+        const { currentUser } = stores.users
+        if (currentUser === null) return null
+
+        const teams = await meta.api.getAllTeams()
+
+        if (teams === null || teams === undefined) return null
+
+        const teamMembers = await Promise.all(teams.map(team => meta.membersApi.getTeamMembers(team.key)))
+
+        return teams.filter((team, i) => {
+            const members = teamMembers[i]
+
+            if (members === null || members === undefined) return false
+
+            return members.some(member => member.inviteEmail === currentUser.email)
+        })
+    },
     currentMember: () => {
         const { currentUser } = stores.users
         const { members } = stores.members
@@ -34,5 +52,5 @@ export const [context, Provider] = createStoreContext({
     }
 }), {
     contexts: { users: usersContext, members: membersContext, router: routerContext },
-    meta: { api: AppApi }
+    meta: { api: AppApi, membersApi: MembersApi }
 }) 
