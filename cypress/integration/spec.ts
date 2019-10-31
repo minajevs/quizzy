@@ -326,14 +326,10 @@ describe('The Team Page', () => {
             cy.contains(testDesc)
             cy.contains(testQuest)
 
-            cy.getTest('answer-row').should('have.length', 3)
-            cy.getTest('answer-row').each(x => cy.wrap(x).contains('Exclude'))
-            cy.getTest('answer-row').each(x => cy.wrap(x).contains('Save'))
-            cy.getTest('answer-row').within(x => {
-                cy.contains(settings.username)
-                cy.contains(testMember2)
-                cy.contains(testMember3)
-            })
+            cy.getTest('answer-row').should('have.length', 1) // Only author can see other questions
+            cy.getTest('answer-row').contains('Exclude')
+            cy.getTest('answer-row').contains('Save')
+            cy.getTest('answer-row').contains(settings.username)
 
             cy.getTest('questions-tab').contains('By ' + testMember2)
             cy.getTest('questions-tab').contains(testQuest)
