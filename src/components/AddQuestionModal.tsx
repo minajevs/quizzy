@@ -105,15 +105,15 @@ const AddQuestionModal: React.FC = props => {
                 <Modal.Header>New question</Modal.Header>
                 <Modal.Content>
                     <label>Author</label>
-                    <Dropdown placeholder='John Doe' selection={true} options={createDropDownOptions(members)} onChange={handleDropdown} fluid />
+                    <Dropdown placeholder='John Doe' selection={true} options={createDropDownOptions(members)} onChange={handleDropdown} fluid data-test="add-question-dropdown" />
                     <Validation value={state.question.author} error='Please choose an author!' rule={notEmpty} validate={validate} />
                     <label>Description <Popup trigger={<Icon name='exclamation circle' />} content='Markdown supported!' /></label>
                     <Form>
-                        <TextArea onChange={handleTextAreaChange('description')} placeholder='1 drink is too few and 3 drinks is too many.' />
+                        <TextArea onChange={handleTextAreaChange('description')} placeholder='1 drink is too few and 3 drinks is too many.' data-test="add-question-description" />
                     </Form>
                     <Form>
                         <Form.Group>
-                            <Form.Input label='Question' onChange={handleChange('text')} width='12' placeholder='How many beers is enough?' type='text' onKeyPress={onKeyPress('Enter', add)} />
+                            <Form.Input label='Question' onChange={handleChange('text')} width='12' placeholder='How many beers is enough?' type='text' onKeyPress={onKeyPress('Enter', add)} data-test="add-question-question" />
                             <Form.Field width='4'>
                                 <UnitsInput onChange={handleChange('units')} onTypeChange={handleTypeChange('unitsMeasure')} onKeyPress={onKeyPress('Enter', add)} />
                             </Form.Field>

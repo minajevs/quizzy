@@ -30,7 +30,7 @@ const Questions: React.FC = () => {
 
   return (
     <Container>
-      <Segment>
+      <Segment data-test="questions-tab">
         <AddQuestionModal />
         <Item.Group divided={true}>
           {questions

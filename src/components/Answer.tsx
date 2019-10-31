@@ -109,7 +109,7 @@ const Answer: React.FC<Props> = props => {
 
     return (
         <>
-            <List.Item>
+            <List.Item data-test="answer-row">
                 <List.Content>
                     <List.Description>
                         {renderContent()}
