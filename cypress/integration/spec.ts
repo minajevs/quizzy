@@ -32,7 +32,6 @@ const clearDb = () => {
 }
 
 describe('The Main Page', () => {
-    return
     before(() => {
         clearDb()
     })
@@ -169,6 +168,8 @@ describe('The Team Page', () => {
         cy.getTestInput('new-team-id').type(settings.teamKey)
         cy.getTestInput('new-team-name').type(settings.teamName)
         cy.getTest('create').click()
+
+        cy.contains(settings.teamName, { timeout: 5000 })
     })
 
     beforeEach(() => {
@@ -177,7 +178,6 @@ describe('The Team Page', () => {
     })
 
     describe('Members', () => {
-        return
         it('Can add a new member', () => {
             cy.contains('Add member').click()
             cy.contains('New member')
@@ -234,7 +234,17 @@ describe('The Team Page', () => {
         const testMember3 = 'test-member-3'
 
         before(() => {
-            cy.visit(`/t/${settings.teamKey}`)
+            // clear db
+            clearDb()
+            // init a team
+            cy.visit('/')
+            cy.contains('Welcome!', { timeout: 5000 })
+            cy.login()
+
+            cy.getTestInput('new-team-id').type(settings.teamKey)
+            cy.getTestInput('new-team-name').type(settings.teamName)
+            cy.getTest('create').click()
+
             cy.contains(settings.teamName, { timeout: 5000 })
 
             // Add a users for testing questions
@@ -335,6 +345,30 @@ describe('The Team Page', () => {
             cy.getTest('questions-tab').contains(testQuest)
         })
 
+        it('Can add a new question with custom units', () => {
+            const testDesc = 'test-desc-default-units'
+            const testQuest = 'test-quest-default-units'
+            const testUnits = 'test-unit'
+
+            cy.contains('Add Question').click()
+            cy.contains('New question')
+
+            cy.getTest('add-question-dropdown').click()
+            cy.getTest('add-question-dropdown').get('.menu').contains(testMember2).click()
+
+            cy.getTest('add-question-description').type(testDesc)
+            cy.getTestInput('add-question-question').type(testQuest)
+            cy.getTestInput('add-question-question').type(testQuest)
+            cy.getTestInput('add-question-units').type(testUnits)
+
+            cy.get('.modal').contains('Add').click()
+
+            cy.contains(testDesc)
+            cy.contains(testQuest)
+
+            cy.getTest('answer-row').contains(testUnits)
+        })
+
         it('Can view a question details', () => {
             const testDesc = 'test-desc-3'
             const testQuest = 'test-quest-3'
@@ -356,6 +390,39 @@ describe('The Team Page', () => {
             cy.get('.modal').contains(testQuest)
             cy.get('.modal').contains(testDesc)
             cy.get('.modal').contains('Edit')
+        })
+    })
+
+    describe('Answers', () => {
+        const testMember1 = 'test-member-1'
+        const testMember2 = 'test-member-2'
+        const testMember3 = 'test-member-3'
+
+        before(() => {
+            cy.visit(`/t/${settings.teamKey}`)
+            cy.contains(settings.teamName, { timeout: 5000 })
+
+            // Add a users for testing questions
+            const addMember = (name: string) => {
+                cy.contains('Add member').click()
+                cy.getTestInput('add-member-name').type(name)
+                cy.getTestInput('add-member-email').type(`${name}@example.com`)
+                cy.getTest('add-member').click()
+                // Verify
+                cy.getTest('member-section').contains(name)
+            }
+
+            addMember(testMember1)
+            addMember(testMember2)
+            addMember(testMember3)
+        })
+
+        beforeEach(() => {
+            cy.visit(`/t/${settings.teamKey}`)
+            cy.contains(settings.teamName, { timeout: 5000 })
+            cy.contains(testMember1)
+            cy.contains(testMember2)
+            cy.contains(testMember3)
         })
     })
 })
