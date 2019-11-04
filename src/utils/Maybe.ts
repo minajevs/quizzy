@@ -4,6 +4,7 @@ export class Maybe<T> {
         private cancelled: boolean = false
     ) { }
 
+
     static some<T>(value: T) {
         if (!value) {
             throw Error("Provided value must not be empty");

@@ -1,5 +1,7 @@
 import * as React from 'react'
 
+import Requirements from 'utils/RequirementsFunctor'
+
 import TeamComponent from 'components/Team'
 import TeamNotFound from 'components/TeamNotFound'
 
@@ -23,7 +25,7 @@ const Team: React.FC = props => {
   const appStore = React.useContext(appContext)
   const teamStore = React.useContext(teamContext)
 
-  const [returnEl, derail] = React.useState<React.ReactElement | null>(null)
+  const [returnEl, setReturn] = React.useState<React.ReactElement | null>(null)
   const [appLoaded, setAppLoaded] = React.useState<boolean>(false)
 
   const loadApp = React.useCallback(async (key: string) => {
@@ -48,22 +50,16 @@ const Team: React.FC = props => {
   }, [])
 
   React.useEffect(() => {
-    const loadTeam = async () => {
-      if (teamKey === null) return derail(<Redirect to="/" />)
-      if (currentUser === null) return derail(<Redirect to={`/l/${router.teamKey}`} />)
-      await loadApp(teamKey)
-
-      if (teamStore.teamNotFound) return derail(TeamNotFound(router.teamKey!))
-      if (team === null) return derail(Loading('team'))
-      if (members === null) return derail(Loading('members'))
-      const currentMember = appStore.currentMember()
-
-      if (currentMember === null) return derail(<Redirect to="/np" />)
-
-      return derail(<TeamComponent />)
-    }
-
-    loadTeam()
+    setReturn(Requirements
+      .validateValue(teamKey, <Redirect to="/" />)
+      .validate(key => currentUser !== null ? ({ key, user: currentUser }) : null, <Redirect to={`/l/${router.teamKey}`} />)
+      .map(({ key }) => loadApp(key))
+      .validate(_ => appLoaded ? true : null, Loading('app'))
+      .validate(_ => teamStore.teamNotFound ? true : null, TeamNotFound(router.teamKey!))
+      .validate(_ => team, Loading('team'))
+      .validate(_ => members, Loading('members'))
+      .validate(_ => appStore.currentMember(), <Redirect to="/np" />)
+      .get(<TeamComponent />))
   }, [teamKey, currentUser, team, members])
 
   return returnEl || Loading('team')
