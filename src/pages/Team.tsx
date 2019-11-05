@@ -1,7 +1,5 @@
 import * as React from 'react'
 
-import Requirements from 'utils/RequirementsFunctor'
-
 import { Either, left, right, chain, fold } from 'fp-ts/lib/Either'
 import { pipe } from 'fp-ts/lib/pipeable'
 
@@ -19,6 +17,7 @@ import { context as questionsContext } from 'context/questions'
 import { context as answersContext } from 'context/answers'
 
 import Loading from 'components/Loading'
+import { constVoid } from 'fp-ts/lib/function'
 
 const Team: React.FC = props => {
   const usersStore = React.useContext(usersContext)
@@ -53,19 +52,22 @@ const Team: React.FC = props => {
   }, [])
 
   React.useEffect(() => pipe(
-    teamKey !== null ? right(teamKey) : left(<Redirect to="/" />),
-    chain(key => currentUser !== null ? right(key) : left(<Redirect to={`/l/${router.teamKey}`} />)),
-    chain(key => right(loadApp(key))),
-    chain(_ => appLoaded ? right(true) : left(Loading('app'))),
-    chain(_ => !teamStore.teamNotFound ? right(true) : left(TeamNotFound(router.teamKey!))),
-    chain(_ => team !== null ? right(true) : left(Loading('team'))),
-    chain(_ => members !== null ? right(true) : left(Loading('members'))),
-    chain(_ => appStore.currentMember() !== null ? right(true) : left(<Redirect to="/np" />)),
-    chain(_ => right(<TeamComponent />)),
-    fold(setReturn, setReturn)
+    notNull(teamKey, <Redirect to="/" />)(),
+    chain(notNull(currentUser, <Redirect to={`/l/${teamKey}`} />)),
+    chain(exec(loadApp(teamKey!))),
+    chain(isTrue(appLoaded, Loading('app'))),
+    chain(isTrue(!teamStore.teamNotFound, TeamNotFound(router.teamKey!))),
+    chain(notNull(team, Loading('team'))),
+    chain(notNull(members, Loading('members'))),
+    chain(notNull(appStore.currentMember(), <Redirect to="/np" />)),
+    fold(setReturn, () => setReturn(<TeamComponent />))
   ), [teamKey, currentUser, appLoaded, teamStore.teamNotFound, team, members])
 
   return returnEl || Loading('team')
 }
+
+const notNull = <T, E,>(value: T | null, error: E) => (): Either<E, T> => value !== null ? right(value) : left(error)
+const isTrue = <E,>(expr: boolean, error: E) => (): Either<E, void> => expr ? right(constVoid()) : left(error)
+const exec = <T,>(f: T) => () => right(constVoid())
 
 export default Team
