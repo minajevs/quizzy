@@ -2,6 +2,9 @@ import * as React from 'react'
 
 import Requirements from 'utils/RequirementsFunctor'
 
+import { Either, left, right, chain, fold } from 'fp-ts/lib/Either'
+import { pipe } from 'fp-ts/lib/pipeable'
+
 import TeamComponent from 'components/Team'
 import TeamNotFound from 'components/TeamNotFound'
 
@@ -49,18 +52,18 @@ const Team: React.FC = props => {
     answersStore.init()
   }, [])
 
-  React.useEffect(() => {
-    setReturn(Requirements
-      .validateValue(teamKey, <Redirect to="/" />)
-      .validate(key => currentUser !== null ? ({ key, user: currentUser }) : null, <Redirect to={`/l/${router.teamKey}`} />)
-      .map(({ key }) => loadApp(key))
-      .validate(_ => appLoaded ? true : null, Loading('app'))
-      .validate(_ => teamStore.teamNotFound ? true : null, TeamNotFound(router.teamKey!))
-      .validate(_ => team, Loading('team'))
-      .validate(_ => members, Loading('members'))
-      .validate(_ => appStore.currentMember(), <Redirect to="/np" />)
-      .get(<TeamComponent />))
-  }, [teamKey, currentUser, team, members])
+  React.useEffect(() => pipe(
+    teamKey !== null ? right(teamKey) : left(<Redirect to="/" />),
+    chain(key => currentUser !== null ? right(key) : left(<Redirect to={`/l/${router.teamKey}`} />)),
+    chain(key => right(loadApp(key))),
+    chain(_ => appLoaded ? right(true) : left(Loading('app'))),
+    chain(_ => !teamStore.teamNotFound ? right(true) : left(TeamNotFound(router.teamKey!))),
+    chain(_ => team !== null ? right(true) : left(Loading('team'))),
+    chain(_ => members !== null ? right(true) : left(Loading('members'))),
+    chain(_ => appStore.currentMember() !== null ? right(true) : left(<Redirect to="/np" />)),
+    chain(_ => right(<TeamComponent />)),
+    fold(setReturn, setReturn)
+  ), [teamKey, currentUser, appLoaded, teamStore.teamNotFound, team, members])
 
   return returnEl || Loading('team')
 }
