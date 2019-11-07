@@ -5,6 +5,7 @@
 
 # testing
 /coverage
+*.mp4
 
 # production
 /build

@@ -32,7 +32,8 @@
     "eject": "react-scripts-ts eject",
     "predeploy": "yarn build",
     "deploy": "gh-pages -d build",
-    "tests:ui": "concurrently \"yarn start\" \"yarn run cypress open\""
+    "tests:ui": "concurrently \"yarn start\" \"yarn run cypress open\"",
+    "tests:run-ci": "cypress run --config-file cypress.ci.json"
   },
   "devDependencies": {
     "@babel/preset-typescript": "^7.6.0",
@@ -47,7 +48,7 @@
     "@types/react-router": "^5.0.2",
     "@types/react-router-dom": "^4.3.4",
     "concurrently": "^4.1.2",
-    "cypress": "3.4.1",
+    "cypress": "3.5.0",
     "fp-ts": "^2.1.1",
     "gh-pages": "^2.0.1",
     "ts-loader": "^6.1.2",
