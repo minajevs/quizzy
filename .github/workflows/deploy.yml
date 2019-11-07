@@ -8,10 +8,19 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v1
-    - name: yarn install, build
-      run: |
-        yarn
-        yarn run build
-    - name: Release Github Pages
-      uses: igolopolosov/github-action-releasegithub-pages@master
+      - name: Checkout
+        uses: actions/checkout@v1
+      
+      - name: Setup node
+        uses: actions/setup-node@v1
+        with:
+          node-version: '10.x'
+      
+      - name: Build and Deploy
+        uses: JamesIves/github-pages-deploy-action@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          BASE_BRANCH: master # The branch the action should deploy from.
+          BRANCH: gh-pages # The branch the action should deploy to.
+          FOLDER: build # The folder the action should deploy.
+          BUILD_SCRIPT: yarn && yarn run build # The build script the action should run prior to deploying.
