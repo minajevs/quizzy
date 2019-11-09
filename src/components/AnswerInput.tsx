@@ -31,6 +31,7 @@ const AnswerInput: React.FC<Props> = props => {
             step='0.001'
             labelPosition='right'
             fluid
+            data-test="answer-input"
         >
             {label}
             <input />
@@ -43,8 +44,8 @@ const AnswerInput: React.FC<Props> = props => {
             onKeyPress={onKeyPress}
             defaultValue={defaultValue}
             type='text'
-            labelPosition='right'
-            fluid
+            labelPosit
+            data-test="answer-input"
         >
             {label}
             <input />

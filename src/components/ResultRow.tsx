@@ -43,7 +43,7 @@ const cup = (num: number) => num === 1 ? <Icon name='winner' /> : ''
 
 const ResultRow: React.FC<Props> = ({ result, index, units }) => (
     <>
-        <Table.Row className='question-item'>
+        <Table.Row className='question-item' data-test="result-row">
             <Table.Cell size='mini'>
                 <Header as='h4' image>
                     <Image>

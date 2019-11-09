@@ -359,7 +359,7 @@ describe('The Team Page', () => {
             cy.getTest('add-question-description').type(testDesc)
             cy.getTestInput('add-question-question').type(testQuest)
             cy.getTestInput('add-question-question').type(testQuest)
-            cy.getTestInput('add-question-units').type(testUnits)
+            cy.getTestInput('question-units').type(testUnits)
 
             cy.get('.modal').contains('Add').click()
 
@@ -391,6 +391,40 @@ describe('The Team Page', () => {
             cy.get('.modal').contains(testDesc)
             cy.get('.modal').contains('Edit')
         })
+
+        it('Can edit a question details', () => {
+            const testDesc = 'test-desc-4'
+            const testQuest = 'test-quest-4'
+            const testUnits = 'test-units-4'
+
+            cy.contains('Add Question').click()
+            cy.contains('New question')
+
+            cy.getTest('add-question-dropdown').click()
+            cy.getTest('add-question-dropdown').get('.menu').contains(testMember3).click()
+
+            cy.getTest('add-question-description').type(testDesc)
+            cy.getTestInput('add-question-question').type(testQuest)
+            cy.getTestInput('question-units').type(testUnits)
+
+            cy.get('.modal').contains('Add').click()
+
+            cy.getTest('questions-tab').contains('By ' + testMember3)
+            cy.getTest('questions-tab').contains(testQuest).click()
+
+            cy.get('.modal').contains('Edit').click()
+
+            cy.getTest('edit-question-description').clear().type(testDesc + ' new')
+            cy.getTestInput('edit-question-text').clear().type(testQuest + ' new')
+            cy.getTestInput('question-units').clear().type(testUnits + ' new')
+
+            cy.get('.modal').contains('Save').click()
+
+            cy.contains(testDesc + ' new')
+            cy.contains(testQuest + ' new')
+            cy.contains(testUnits + ' new')
+
+        })
     })
 
     describe('Answers', () => {
@@ -399,7 +433,17 @@ describe('The Team Page', () => {
         const testMember3 = 'test-member-3'
 
         before(() => {
-            cy.visit(`/t/${settings.teamKey}`)
+            // clear db
+            clearDb()
+            // init a team
+            cy.visit('/')
+            cy.contains('Welcome!', { timeout: 5000 })
+            cy.login()
+
+            cy.getTestInput('new-team-id').type(settings.teamKey)
+            cy.getTestInput('new-team-name').type(settings.teamName)
+            cy.getTest('create').click()
+
             cy.contains(settings.teamName, { timeout: 5000 })
 
             // Add a users for testing questions
@@ -423,6 +467,169 @@ describe('The Team Page', () => {
             cy.contains(testMember1)
             cy.contains(testMember2)
             cy.contains(testMember3)
+        })
+
+        it('Can add a question answer', () => {
+            const testDesc = 'test-desc-1'
+            const testQuest = 'test-quest-1'
+
+            cy.contains('Add Question').click()
+            cy.contains('New question')
+
+            cy.getTest('add-question-dropdown').click()
+            cy.getTest('add-question-dropdown').get('.menu').contains(testMember3).click()
+
+            cy.getTest('add-question-description').type(testDesc)
+            cy.getTestInput('add-question-question').type(testQuest)
+
+            cy.get('.modal').contains('Add').click()
+
+            cy.getTest('questions-tab').contains('By ' + testMember3)
+            cy.getTest('questions-tab').contains(testQuest).click()
+
+            cy.get('.modal').contains('Edit').click()
+
+            cy.get('.modal').within(x => cy.wrap(x).getTestInput('answer-input').type('111'))
+
+            cy.get('.modal').contains('Save').click()
+
+            cy.contains('Answered')
+            cy.contains('Difference')
+        })
+
+        it('Can add a question answer', () => {
+            const testDesc = 'test-desc-1'
+            const testQuest = 'test-quest-1'
+
+            cy.contains('Add Question').click()
+            cy.contains('New question')
+
+            cy.getTest('add-question-dropdown').click()
+            cy.getTest('add-question-dropdown').get('.menu').contains(testMember3).click()
+
+            cy.getTest('add-question-description').type(testDesc)
+            cy.getTestInput('add-question-question').type(testQuest)
+
+            cy.get('.modal').contains('Add').click()
+
+            cy.getTest('questions-tab').contains('By ' + testMember3)
+            cy.getTest('questions-tab').contains(testQuest).click()
+
+            cy.get('.modal').contains('Edit').click()
+
+            cy.get('.modal').within(x => cy.wrap(x).getTestInput('answer-input').type('111'))
+
+            cy.get('.modal').contains('Save').click()
+
+            cy.contains('Answered')
+            cy.contains('Difference')
+        })
+
+        it('Can add answers to a running question', () => {
+            const testDesc = 'test-desc-2'
+            const testQuest = 'test-quest-2'
+
+            cy.contains('Add Question').click()
+            cy.contains('New question')
+
+            cy.getTest('add-question-dropdown').click()
+            cy.getTest('add-question-dropdown').get('.menu').contains(settings.username).click()
+
+            cy.getTest('add-question-description').type(testDesc)
+            cy.getTestInput('add-question-question').type(testQuest)
+
+            cy.get('.modal').contains('Add').click()
+
+            cy.getTest('answer-row').should('have.length', 3)
+
+            cy.getTest('answer-row').eq(0).within(x => {
+                cy.getTestInput('answer-input').type('1')
+                cy.contains('Save').click()
+            })
+
+            cy.getTest('answer-row').eq(0).within(x => {
+                cy.contains('answered')
+            })
+        })
+
+        it('Can exclude a member from a running question', () => {
+            const testDesc = 'test-desc-3'
+            const testQuest = 'test-quest-3'
+
+            cy.contains('Add Question').click()
+            cy.contains('New question')
+
+            cy.getTest('add-question-dropdown').click()
+            cy.getTest('add-question-dropdown').get('.menu').contains(settings.username).click()
+
+            cy.getTest('add-question-description').type(testDesc)
+            cy.getTestInput('add-question-question').type(testQuest)
+
+            cy.get('.modal').contains('Add').click()
+
+            cy.getTest('answer-row').should('have.length', 3)
+
+            cy.getTest('answer-row').eq(1).within(x => {
+                cy.contains('Exclude').click()
+            })
+
+            cy.getTest('answer-row').eq(1).within(x => {
+                cy.contains('will not answer today')
+            })
+        })
+
+        it('Scores are counted for answered, not-answered and excluded members', () => {
+            const testDesc = 'test-desc-3'
+            const testQuest = 'test-quest-3'
+
+            cy.contains('Add Question').click()
+            cy.contains('New question')
+
+            cy.getTest('add-question-dropdown').click()
+            cy.getTest('add-question-dropdown').get('.menu').contains(settings.username).click()
+
+            cy.getTest('add-question-description').type(testDesc)
+            cy.getTestInput('add-question-question').type(testQuest)
+
+            cy.get('.modal').contains('Add').click()
+
+            cy.getTest('answer-row').should('have.length', 3)
+
+            cy.getTest('answer-row').eq(0).within(x => {
+                cy.getTestInput('answer-input').type('1')
+                cy.contains('Save').click()
+            })
+
+            cy.getTest('answer-row').eq(1).within(x => {
+                cy.contains('Exclude').click()
+            })
+
+            cy.getTest('questions-tab').contains('By ' + testMember3)
+            cy.getTest('questions-tab').contains(testQuest).click()
+
+            cy.get('.modal').contains('Edit').click()
+            cy.get('.modal').within(x => cy.wrap(x).getTestInput('answer-input').type('111'))
+            cy.get('.modal').contains('Save').click()
+
+            cy.contains('Answered')
+            cy.contains('Difference')
+
+            cy.getTest('result-row').should('have.length', 3)
+
+            cy.getTest('result-row').eq(0).within(x => {
+                cy.contains('1st')
+                cy.contains(testMember1)
+            })
+
+            cy.getTest('result-row').eq(1).within(x => {
+                cy.contains('2nd')
+                cy.contains(testMember2)
+            })
+
+            cy.getTest('result-row').eq(2).within(x => {
+                cy.contains('3rd')
+                cy.contains(testMember3)
+            })
         })
     })
 })

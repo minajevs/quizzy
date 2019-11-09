@@ -65,11 +65,11 @@ const EditQuestionModal: React.FC<Props> = props => {
                 <Modal.Content>
                     <label>Description <Popup trigger={<Icon name='exclamation circle' />} content='Markdown supported!' /></label>
                     <Form>
-                        <TextArea onChange={handleTextAreaChange('description')} value={state.question.description} placeholder='1 drink is too few and 3 drinks is too many.' />
+                        <TextArea onChange={handleTextAreaChange('description')} value={state.question.description} placeholder='1 drink is too few and 3 drinks is too many.' data-test="edit-question-description" />
                     </Form>
                     <Form>
                         <Form.Group>
-                            <Form.Input label='Question' onChange={handleChange('text')} value={state.question.text} width='12' placeholder='How many beers is enough?' type='text' onKeyPress={onKeyPress('Enter', save)} />
+                            <Form.Input label='Question' onChange={handleChange('text')} value={state.question.text} width='12' placeholder='How many beers is enough?' type='text' onKeyPress={onKeyPress('Enter', save)} data-test="edit-question-text" />
                             <Form.Field width='4'>
                                 <UnitsInput defaultUnits={state.question.units} defaultValue={state.question.unitsMeasure} onChange={handleChange('units')} onTypeChange={handleTypeChange('unitsMeasure')} onKeyPress={onKeyPress('Enter', save)} />
                             </Form.Field>

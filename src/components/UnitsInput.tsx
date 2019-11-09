@@ -59,7 +59,7 @@ const UnitsInput: React.FC<Props> = props => {
                 type='text'
                 onKeyPress={onKeyPress}
                 fluid
-                data-test='add-question-units'
+                data-test='question-units'
             />
             Answer validation: {state.currentChoice === 'free' ? 'automatic' : 'manual'}
         </>
